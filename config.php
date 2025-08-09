@@ -5,4 +5,13 @@
     define('DB_USER', 'root');
     define('DB_PASSWORD', '');
     define('DB_DATABASE', 'fragrancehub');
+
+// Base path configuration
+$base_path = '/ecommerce/';
+
+// Function to get asset URL
+function asset_url($path) {
+    global $base_path;
+    return $base_path . $path;
+}
 ?>

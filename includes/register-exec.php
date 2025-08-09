@@ -31,8 +31,7 @@ $cpassword  = $_POST['cpassword'] ?? '';
 $address = $_POST['address'] ?? '';
 $phone = $_POST['phone'] ?? '';
 
-// var_dump($password);
-// exit;
+
 
 
 // Input validations

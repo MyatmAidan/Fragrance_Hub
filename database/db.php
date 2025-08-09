@@ -7,10 +7,9 @@ $password = '';
 $conn = new mysqli($host, $username, $password);
 
 if ($conn->connect_errno) {
-    echo "Fail to mysqlnect mysql" . $conn->connect_error;
+    echo "Fail to connect mysql: " . $conn->connect_error;
     exit;
 }
-
 
 function create_database($conn)
 {
@@ -19,20 +18,14 @@ function create_database($conn)
             DEFAULT CHARACTER SET utf8mb4 
             COLLATE utf8mb4_general_ci";
 
-    if ($conn->query($sql)) {
-        return true;
-    }
-    return false;
+    return $conn->query($sql);
 }
 
 create_database($conn);
 
 function select_db($conn)
 {
-    if ($conn->select_db("fragrance_hub")) {
-        return true;
-    }
-    return false;
+    return $conn->select_db("fragrance_hub");
 }
 
 select_db($conn);
@@ -40,105 +33,117 @@ create_table($conn);
 
 function create_table($conn)
 {
-    //user table
-    $user_sql = "CREATE TABLE IF NOT EXISTS `user` (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    phone VARCHAR(50) NOT NULL,
-    role ENUM('admin', 'user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)";
+    $queries = [
 
+        // User Table
+        "CREATE TABLE IF NOT EXISTS `user` (
+            user_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            address VARCHAR(255),
+            phone VARCHAR(50),
+            role INT DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    if ($conn->query($user_sql) === false) return false;
+        // Brand Table
+        "CREATE TABLE IF NOT EXISTS `brand` (
+            brand_id INT AUTO_INCREMENT PRIMARY KEY,
+            brand_name VARCHAR(100) NOT NULL,
+            deleted_at DATETIME,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    //create member table
-    $category_sql = "CREATE TABLE IF NOT EXISTS `category`
-                    (category_id int AUTO_INCREMENT PRIMARY KEY,
-                    category_name VARCHAR(50) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )";
+        // Product Table
+        "CREATE TABLE IF NOT EXISTS `product` (
+            product_id INT AUTO_INCREMENT PRIMARY KEY,
+            product_name VARCHAR(100) NOT NULL,
+            description TEXT,
+            gender VARCHAR(10),
+            deleted_at DATETIME,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    if ($conn->query($category_sql) === false) return false;
+        // Product_Band Table (acts as product-brand pivot with price and qty)
+        "CREATE TABLE IF NOT EXISTS `product_band` (
+            product_id INT NOT NULL,
+            brand_id INT NOT NULL,
+            price DECIMAL(10,2) NOT NULL,
+            Qty INT NOT NULL,
+            deleted_at DATETIME,
+            PRIMARY KEY (product_id, brand_id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    //create trainer table
-    $product_sql = "CREATE TABLE IF NOT EXISTS `product`
-                    (product_id int AUTO_INCREMENT PRIMARY KEY,
-                    product_name VARCHAR(50) NOT NULL,
-                    stock_count VARCHAR(100) NOT NULL UNIQUE,
-                    sale_price VARCHAR(50) NOT NULL,
-                    purchase_price VARCHAR(255) NOT NULL,
-                    category_id VARCHAR(10),
-                    description VARCHAR(200) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )";
+        // Discount Table
+        "CREATE TABLE IF NOT EXISTS `discount` (
+            discount_id INT AUTO_INCREMENT PRIMARY KEY,
+            name_of_package VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    if ($conn->query($product_sql) === false) return false;
+        // Discount Details Table
+        "CREATE TABLE IF NOT EXISTS `discount_details` (
+            discount_details_id INT AUTO_INCREMENT PRIMARY KEY,
+            discount_id INT NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    //attendance table
-    $payment_method_sql = "CREATE TABLE IF NOT EXISTS `payment_method`
-                (payment_method_id INT AUTO_INCREMENT PRIMARY KEY,
-                method_name DATETIME NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )";
+        // Recepties Table
+        "CREATE TABLE IF NOT EXISTS `recepties` (
+            recepties_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            date DATE NOT NULL,
+            total DECIMAL(10,2) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    if ($conn->query($payment_method_sql) === false) return false;
+        // Payment Method Table
+        "CREATE TABLE IF NOT EXISTS `payment_method` (
+            payment_method_id INT AUTO_INCREMENT PRIMARY KEY,
+            name_of_method VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    //create discount table
-    $discont_sql = "CREATE TABLE IF NOT EXISTS `discount`
-                (discount_id INT AUTO_INCREMENT PRIMARY KEY,
-                name_of_package VARCHAR(100) NOT NULL,
-                percentage VARCHAR(100) NOT NULL ,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )";
+        // Order Table
+        "CREATE TABLE IF NOT EXISTS `order` (
+            order_id INT AUTO_INCREMENT PRIMARY KEY,
+            recepties_id INT NOT NULL,
+            product_brand_id INT NOT NULL,
+            discount_details_id INT,
+            line_total DECIMAL(10,2) NOT NULL,
+            qty INT NOT NULL,
+            payment_method_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )",
 
-    if ($conn->query($discont_sql) === false) return false;
-
-    //discount details table
-    $discont_detail_sql = "CREATE TABLE IF NOT EXISTS `discount_detail`
-                (discount_detail_id INT AUTO_INCREMENT PRIMARY KEY,
-                discount_id int NOT NULL,
-                start_date DATE NOT NULL,
-                end_date DATE NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )";
-
-    if ($conn->query($discont_detail_sql) === false) return false;
-
-    //payment table
-    $payment_sql = "CREATE TABLE IF NOT EXISTS `payment`
-                (payment_id INT AUTO_INCREMENT PRIMARY KEY,
-                product_id int NOT NULL,
-                user_id int NOT NULL,
-                amount int NOT NULL,
-                payment_date DATE NOT NULL,
-                payment_method_id VARCHAR(30) NOT NULL,
-                detail_id int NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )";
-
-    if ($conn->query($payment_sql) === false) return false;
-
-
-    // image table create
-    $image_sql = "CREATE TABLE IF NOT EXISTS `image`
+        // Image Table
+        "CREATE TABLE IF NOT EXISTS `image`
                 (
-                type ENUM('product','user') NOT NULL,
+                type ENUM('brand','product') NOT NULL,
                 target_id VARCHAR(100) NOT NULL ,
                 img VARCHAR(100) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )";
+                )"
+    ];
 
-    if ($conn->query($image_sql) === false) return false;
+    foreach ($queries as $sql) {
+        if ($conn->query($sql) === false) {
+            echo "Error creating table: " . $conn->error;
+            return false;
+        }
+    }
 }

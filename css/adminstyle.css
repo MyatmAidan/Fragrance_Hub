@@ -1,0 +1,102 @@
+:root {
+  --primary-color: #c388f6;
+  --sec-color: rgb(159, 151, 151);
+  /* Neutral Colors */
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  /* Sidebar Colors */
+  --sidebar-bg: #1e1e2f;
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  /* Font Family */
+  --main-font: "Nata Sans", Geneva, Verdana, sans-serif;
+}
+body {
+  font-family: var(--main-font);
+  background-color: var(--light-color);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+}
+.sidebar {
+  height: 100vh;
+  width: 300px;
+  box-shadow: 0 12px 30px rgba(80, 143, 244, 0.1);
+}
+.app-brand {
+  margin: 0 0 20px;
+  text-align: center;
+  text-decoration: none;
+  padding: 20px 0;
+  font-weight: 1000;
+}
+.app-brand a {
+  text-decoration: none;
+  font-size: 1.39rem;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Make the arrow appear on the right side */
+.metismenu .has-arrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.metismenu .has-arrow .icon {
+  margin-right: 10px;
+}
+.metismenu .has-arrow:after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+
+/* Rotate arrow when expanded */
+.metismenu .mm-active > .has-arrow:after {
+  transform: rotate(135deg);
+}
+.sidebar > ul > li {
+  padding: 10px;
+}
+.sider_menu > li > a {
+  position: relative;
+  display: block;
+  padding: 15px 20px;
+  color: #000;
+  text-decoration: none;
+  border-radius: 20px;
+  background-color: transparent;
+  transition: background-color 0.25s ease;
+}
+.sider_menu > li > a::before {
+  content: none;
+}
+
+/* Show background only after click (active) and remove on re-click */
+.sider_menu > li.mm-active > a {
+  background-color: #babacb;
+}
+.sider_menu > li.mm-active > a::after {
+  content: "";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #666;
+}
+.collapse-list > li {
+  padding: 10px 0;
+}
+.collapse-list > li a {
+  text-decoration: none;
+  color: #1e1e2f;
+}

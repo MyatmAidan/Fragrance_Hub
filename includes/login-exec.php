@@ -49,7 +49,7 @@ if ($errflag) {
 // Prepare statement to get user by username
 $stmt = mysqli_prepare($conn, "SELECT user_id, user_name, password, role FROM user WHERE user_name = ?");
 if (!$stmt) {
-    die('Prepare failed: ' . mysqli_error($link));
+    die('Prepare failed: ' . mysqli_error($conn));
 }
 
 mysqli_stmt_bind_param($stmt, 's', $username);
@@ -73,7 +73,15 @@ if (mysqli_stmt_num_rows($stmt) == 1) {
         session_regenerate_id(true);
 
         session_write_close();
-        header("Location: ../index.php");
+
+        // Redirect based on user role
+        if ($user_is_admin == 1) {
+            // Admin user - redirect to admin panel
+            header("Location: ../admin/index.php");
+        } else {
+            // Regular user - redirect to main index
+            header("Location: ../index.php");
+        }
         exit();
     } else {
         // Password incorrect

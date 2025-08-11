@@ -21,76 +21,97 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
         $description_error = 'You must fill product description.';
     }
 
-    if ($brand_name == '') {
+    // Gender Validation
+    if (strlen($gender) === 0) {
         $error = true;
-        $gender_error = 'You must choose gender.';
+        $gender_error = "Gender is require.";
     }
 
     if (!$error) {
-
-        var_dump("dta");
-        die;
-        $data = [
-            'product_name' => $product_name,
-            'description' => $description,
-            'gender' => $gender
-        ];
+        // Start transaction
+        mysqli_begin_transaction($conn);
 
 
-        $result = insertData('product', $conn, $data);
+        try {
 
-        // Insert class image(s)
-        $image_success = true;
-        $uploaded_files = []; // Track uploaded files
+            $data = [
+                'product_name' => $product_name,
+                'description' => $description,
+                'gender' => $gender
+            ];
 
-        if ($result && $class_id && isset($_FILES['image'])) {
-            $images = $_FILES['image'];
-            $allowed = ['JPG', 'jpeg', 'png', 'jpg'];
+            $result = insertData('product', $conn, $data);
 
-            // Handle multiple files
-            for ($i = 0; $i < count($images['name']); $i++) {
-                $tmp = $images['tmp_name'][$i];
-                $ext = strtolower(pathinfo($images['name'][$i], PATHINFO_EXTENSION));
+            $product_id = mysqli_insert_id($conn);
 
-                if (in_array($ext, $allowed)) {
-                    $folder = "upload/";
-                    if (!file_exists($folder)) {
-                        mkdir($folder, 0777, true);
-                    }
-                    $filename = date("Ymd_His") . "_" . uniqid() . "." . $ext;
-                    $path = $folder . $filename;
+            // Insert class image(s)
+            $image_success = true;
+            $uploaded_files = []; // Track uploaded files
 
-                    if (move_uploaded_file($tmp, $path)) {
-                        $uploaded_files[] = $path; // Track file
-                        $img_data = [
-                            'img' => $path,
-                            'type' => 'class',
-                            'target_id' => $class_id
-                        ];
-                        $insert = insertData('image', $conn, $img_data);
-                        if (!$insert) {
+            if ($result && $product_id && isset($_FILES['image'])) {
+                $images = $_FILES['image'];
+                $allowed = ['JPG', 'jpeg', 'png', 'jpg'];
+
+                // Handle multiple files
+                for ($i = 0; $i < count($images['name']); $i++) {
+                    $tmp = $images['tmp_name'][$i];
+                    $ext = strtolower(pathinfo($images['name'][$i], PATHINFO_EXTENSION));
+
+                    if (in_array($ext, $allowed)) {
+                        $folder = "upload/";
+                        if (!file_exists($folder)) {
+                            mkdir($folder, 0777, true);
+                        }
+                        $filename = date("Ymd_His") . "_" . uniqid() . "." . $ext;
+                        $path = $folder . $filename;
+
+                        if (move_uploaded_file($tmp, $path)) {
+
+                            $uploaded_files[] = $path; // Track file
+                            $img_data = [
+                                'img' => $path,
+                                'type' => 'product',
+                                'target_id' => $product_id
+                            ];
+                            $insert = insertData('image', $conn, $img_data);
+                            if (!$insert) {
+                                $image_success = false;
+                                $name_error = "Image insert failed: " . mysqli_error($conn);
+                            }
+                        } else {
                             $image_success = false;
-                            $name_error = "Image insert failed: " . mysqli_error($conn);
+                            $name_error = "Failed to move uploaded file.";
                         }
                     } else {
                         $image_success = false;
-                        $name_error = "Failed to move uploaded file.";
+                        $name_error = "Invalid file type. Only JPG, JPEG, and PNG are allowed.";
                     }
-                } else {
-                    $image_success = false;
-                    $name_error = "Invalid file type. Only JPG, JPEG, and PNG are allowed.";
                 }
             }
-        }
 
-        if ($result) {
-            $url = '../admin/product_list.php?success=Brand Created Successfully';
-            header("Location: $url");
-            exit;
-        } else {
-            $url = '../admin/product_create.php?error=Error In Insertion';
-            header("Location: $url");
-            exit;
+            // Commit or rollback
+            if ($result && $image_success) {
+                mysqli_commit($conn);
+                $success = "Product inserted successfully!";
+                header("Location: product_list.php?success=" . urlencode($success));
+                exit;
+            } else {
+                // Delete uploaded files if transaction fails
+                foreach ($uploaded_files as $file) {
+                    if (file_exists($file)) {
+                        unlink($file);
+                    }
+                }
+                mysqli_rollback($conn);
+                $error = true;
+                $name_error = "Database insert failed. Transaction rolled back. MySQL error: " . mysqli_error($conn);
+                header("Location: product_create.php?error=" . urlencode($name_error));
+                exit;
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            $error = true;
+            $description_error = "Error: " . $e->getMessage();
         }
     }
 }
@@ -172,7 +193,7 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                         </div>
                     </div>
                     <div class="card-body-modern">
-                        <form action="product_create.php" method="post" class="needs-validation" novalidate>
+                        <form action="product_create.php" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="mb-3">
@@ -198,8 +219,8 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                                         <?php endif; ?>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="product_name" class="form-label fw-bold">
-                                            <i class="bi bi-award me-2"></i>Product Name
+                                        <label for="description" class="form-label fw-bold">
+                                            <i class="bi bi-award me-2"></i> Description
                                         </label>
                                         <input
                                             type="text"
@@ -214,7 +235,7 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                                         <?php if (isset($description)): ?>
                                             <div class="invalid-feedback d-block">
                                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                                <?= htmlspecialchars($description) ?>
+                                                <?= htmlspecialchars($description_error) ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>

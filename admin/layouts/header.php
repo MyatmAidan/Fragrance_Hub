@@ -1,20 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>siderbar</title>
-    <link rel="stylesheet" href="../../css/adminstyle.css?v=<?= time(); ?>" />
-    <link rel="stylesheet" href="../../node_modules/metismenujs/dist/metismenujs.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
-
-
-</head>
-
-<body>
     <aside>
         <nav id="adminSidebar" class="sidebar">
             <div class="app-brand">
@@ -36,13 +19,3 @@
         </nav>
 
     </aside>
-    <script src="../../node_modules/metismenujs/dist/metismenujs.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            new MetisMenu('.metismenu');
-        });
-    </script>
-
-</body>
-
-</html>

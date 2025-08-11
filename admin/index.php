@@ -81,13 +81,12 @@ $top_products = $conn->query("
 
 
 <body class="modern-dashboard">
-    <div class="d-flex min-vh-100 admin-layout" style="min-height: 100vh;">
+    <div class="d-flex">
         <!-- Sidebar -->
         <?php include '../admin/layouts/header.php'; ?>
 
         <!-- Main content -->
         <div class="flex-grow-1">
-
             <!-- Header -->
             <?php include '../includes/.php'; ?>
 

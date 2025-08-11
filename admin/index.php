@@ -72,6 +72,8 @@ $top_products = $conn->query("
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>" />
+    <link rel="stylesheet" href="../css/adminstyle.css?v=<?= time() ?>" />
+    <link rel="stylesheet" href="../node_modules/metismenujs/dist/metismenujs.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -79,12 +81,13 @@ $top_products = $conn->query("
 
 
 <body class="modern-dashboard">
-    <div class="d-flex">
+    <div class="d-flex min-vh-100 admin-layout" style="min-height: 100vh;">
         <!-- Sidebar -->
-        <?php include '../includes/admin_sidebar.php'; ?>
+        <?php include '../admin/layouts/header.php'; ?>
 
         <!-- Main content -->
         <div class="flex-grow-1">
+
             <!-- Header -->
             <?php include '../includes/.php'; ?>
 
@@ -312,10 +315,10 @@ $top_products = $conn->query("
         </div>
     </div>
 
+    <script src="../node_modules/metismenujs/dist/metismenujs.min.js"></script>
     <script>
-        // Sidebar toggle functionality
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            new MetisMenu('.metismenu');
         });
     </script>
 </body>

@@ -23,14 +23,11 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
     }
 
 
-
     if (!$error) {
         // Start transaction
         mysqli_begin_transaction($conn);
 
-
         try {
-
 
             $data = [
                 'name_of_package' => $name_of_package

@@ -6,10 +6,15 @@ require '../database/central_function.php';
 
 $error = false;
 
+$select_brand = select_data('brand', $conn, '*');
+
 if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_name = $_POST['product_name'];
     $description = $_POST['description'];
     $gender = $_POST['gender'];
+    $price = $_POST['price'];
+    $qty = $_POST['qty'];
+    $brand_id = $_POST['brand'];
 
     if (strlen($product_name) == 0 || $product_name == '') {
         $error = true;
@@ -43,6 +48,15 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
             $result = insertData('product', $conn, $data);
 
             $product_id = mysqli_insert_id($conn);
+
+            $product_barnd_data = [
+                'product_id' => $product_id,
+                'brand_id' => $brand_id,
+                'price' => $price,
+                'Qty' => $qty
+            ];
+
+            $product_barnd_result = insertData('product_band', $conn, $product_barnd_data);
 
             // Insert class image(s)
             $image_success = true;
@@ -149,8 +163,8 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                         <p class="welcome-subtitle">Add a new product to your product catalog</p>
                     </div>
                     <div class="welcome-actions">
-                        <a href="brand_list.php" class="btn btn-outline-light btn-modern">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Brands
+                        <a href="index.php" class="btn btn-outline-light btn-modern">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                         </a>
                     </div>
                 </div>
@@ -189,7 +203,7 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                     <div class="card-header-modern">
                         <div class="card-title">
                             <i class="bi bi-plus-circle me-2"></i>
-                            <span>Brand Information</span>
+                            <span>Product Information</span>
                         </div>
                     </div>
                     <div class="card-body-modern">
@@ -209,7 +223,7 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                                             maxlength="50"
                                             pattern="^[a-zA-Z][a-zA-Z0-9-_\.\s]{1,49}$"
                                             required
-                                            value="<?= isset($_POST['brand_name']) ? htmlspecialchars($_POST['brand_name']) : '' ?>">
+                                            value="<?= isset($_POST['product_name']) ? htmlspecialchars($_POST['product_name']) : '' ?>">
 
                                         <?php if (isset($product_error)): ?>
                                             <div class="invalid-feedback d-block">
@@ -217,6 +231,17 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                                                 <?= htmlspecialchars($product_error) ?>
                                             </div>
                                         <?php endif; ?>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-user me-2"></i>Brand Name
+                                        </label>
+                                        <select name="brand" class="form-control" id="">
+                                            <option value="">Select brand</option>
+                                            <?php while ($row = $select_brand->fetch_assoc()): ?>
+                                                <option value="<?= $row['brand_id'] ?>"><?= htmlspecialchars($row['brand_name']) ?></option>
+                                            <?php endwhile; ?>
+                                        </select>
                                     </div>
                                     <div class="mb-3">
                                         <label for="description" class="form-label fw-bold">
@@ -253,6 +278,46 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                                             <option value="female" <?= (isset($_POST['gender']) && $_POST['gender'] == 'Women') ? 'selected' : '' ?>>Women</option>
                                             <option value="other" <?= (isset($_POST['gender']) && $_POST['gender'] == 'other') ? 'selected' : '' ?>>Other</option>
                                         </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="price" class="form-label fw-bold">
+                                            <i class="bi bi-award me-2"></i> Price
+                                        </label>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            id="price"
+                                            name="price"
+                                            placeholder="price"
+                                            required
+                                            value="<?= isset($_POST['price']) ? htmlspecialchars($_POST['price']) : '' ?>">
+
+                                        <?php if (isset($price)): ?>
+                                            <div class="invalid-feedback d-block">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                <?= htmlspecialchars($price_error) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="qty" class="form-label fw-bold">
+                                            <i class="bi bi-award me-2"></i> Quantity
+                                        </label>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            id="qty"
+                                            name="qty"
+                                            placeholder="Quantity"
+                                            required
+                                            value="<?= isset($_POST['qty']) ? htmlspecialchars($_POST['qty']) : '' ?>">
+
+                                        <?php if (isset($qty)): ?>
+                                            <div class="invalid-feedback d-block">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                <?= htmlspecialchars($qty_error) ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="mb-3">
                                         <label for="product_img" class="form-label">

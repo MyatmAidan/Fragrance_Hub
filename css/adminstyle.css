@@ -29,14 +29,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Ensure admin layout stretches columns to equal height and adds spacing */
 .admin-layout {
   align-items: stretch;
   gap: 15px;
   padding: 15px;
 }
 .app-brand {
-  margin: 0 0 20px;
+  margin: none;
   text-align: center;
   text-decoration: none;
   padding: 20px 0;
@@ -76,6 +75,9 @@ ul {
 /* Rotate arrow when expanded */
 .metismenu .mm-active > .has-arrow:after {
   transform: rotate(135deg);
+}
+.sider_menu {
+  padding: 5px;
 }
 .sidebar > ul > li {
   padding: 10px;

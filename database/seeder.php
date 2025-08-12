@@ -143,17 +143,17 @@ function seed_discounts($conn)
 function seed_discount_details($conn)
 {
     $discount_details = [
-        [1, '2024-06-01', '2024-08-31'], // Summer Sale
-        [2, '2024-12-01', '2024-12-31'], // Holiday Special
-        [3, '2024-01-01', '2024-12-31'], // New Customer Discount
-        [4, '2024-01-01', '2024-12-31'], // Loyalty Reward
-        [5, '2024-03-01', '2024-03-31']  // Seasonal Clearance
+        [1, 10, '2024-06-01', '2024-08-31'], // Summer Sale
+        [2, 20, '2024-12-01', '2024-12-31'], // Holiday Special
+        [3, 25, '2024-01-01', '2024-12-31'], // New Customer Discount
+        [4, 15, '2024-01-01', '2024-12-31'], // Loyalty Reward
+        [5, 10, '2024-03-01', '2024-03-31']  // Seasonal Clearance
     ];
 
     foreach ($discount_details as $dd) {
-        $sql = "INSERT INTO discount_details (discount_id, start_date, end_date) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO discount_details (discount_id,percentage, start_date, end_date) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iss", $dd[0], $dd[1], $dd[2]);
+        $stmt->bind_param("iiss", $dd[0], $dd[1], $dd[2], $dd[3]);
         $stmt->execute();
     }
     echo "Discount details seeded successfully.\n";

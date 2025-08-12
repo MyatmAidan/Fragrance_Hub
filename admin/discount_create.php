@@ -7,25 +7,22 @@ require '../database/central_function.php';
 $error = false;
 
 if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $product_name = $_POST['product_name'];
-    $description = $_POST['description'];
-    $gender = $_POST['gender'];
+    $name_of_package = $_POST['name_of_package'];
+    $percentage = $_POST['percentage'];
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
 
-    if (strlen($product_name) == 0 || $product_name == '') {
+    if (strlen($name_of_package) == 0 || $name_of_package == '') {
         $error = true;
-        $brand_error = 'You must fill product name.';
+        $discount_error = 'You must fill discount name.';
     }
 
-    if (strlen($description) == 0 || $description == '') {
+    if ($percentage == '') {
         $error = true;
-        $description_error = 'You must fill product description.';
+        $percentage_error = 'You must fill discount percentage.';
     }
 
-    // Gender Validation
-    if (strlen($gender) === 0) {
-        $error = true;
-        $gender_error = "Gender is require.";
-    }
+
 
     if (!$error) {
         // Start transaction
@@ -34,66 +31,31 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
 
         try {
 
+
             $data = [
-                'product_name' => $product_name,
-                'description' => $description,
-                'gender' => $gender
+                'name_of_package' => $name_of_package
             ];
 
-            $result = insertData('product', $conn, $data);
+            $discount_result = insertData('discount', $conn, $data);
 
-            $product_id = mysqli_insert_id($conn);
+            //for discount detail insert
+            $discount_id = mysqli_insert_id($conn);
 
-            // Insert class image(s)
-            $image_success = true;
-            $uploaded_files = []; // Track uploaded files
+            $discoiunt_info = [
+                'discount_id' => $discount_id,
+                'percentage' => $percentage,
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ];
 
-            if ($result && $product_id && isset($_FILES['image'])) {
-                $images = $_FILES['image'];
-                $allowed = ['JPG', 'jpeg', 'png', 'jpg'];
+            $discoiunt_info_result = insertData('discount_details', $conn, $discoiunt_info);
 
-                // Handle multiple files
-                for ($i = 0; $i < count($images['name']); $i++) {
-                    $tmp = $images['tmp_name'][$i];
-                    $ext = strtolower(pathinfo($images['name'][$i], PATHINFO_EXTENSION));
-
-                    if (in_array($ext, $allowed)) {
-                        $folder = "upload/";
-                        if (!file_exists($folder)) {
-                            mkdir($folder, 0777, true);
-                        }
-                        $filename = date("Ymd_His") . "_" . uniqid() . "." . $ext;
-                        $path = $folder . $filename;
-
-                        if (move_uploaded_file($tmp, $path)) {
-
-                            $uploaded_files[] = $path; // Track file
-                            $img_data = [
-                                'img' => $path,
-                                'type' => 'product',
-                                'target_id' => $product_id
-                            ];
-                            $insert = insertData('image', $conn, $img_data);
-                            if (!$insert) {
-                                $image_success = false;
-                                $name_error = "Image insert failed: " . mysqli_error($conn);
-                            }
-                        } else {
-                            $image_success = false;
-                            $name_error = "Failed to move uploaded file.";
-                        }
-                    } else {
-                        $image_success = false;
-                        $name_error = "Invalid file type. Only JPG, JPEG, and PNG are allowed.";
-                    }
-                }
-            }
 
             // Commit or rollback
-            if ($result && $image_success) {
+            if ($discount_result && $discoiunt_info_result) {
                 mysqli_commit($conn);
-                $success = "Product inserted successfully!";
-                header("Location: product_list.php?success=" . urlencode($success));
+                $success = "Discount created successfully!";
+                header("Location: index.php?success=" . urlencode($success));
                 exit;
             } else {
                 // Delete uploaded files if transaction fails
@@ -105,13 +67,13 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                 mysqli_rollback($conn);
                 $error = true;
                 $name_error = "Database insert failed. Transaction rolled back. MySQL error: " . mysqli_error($conn);
-                header("Location: product_create.php?error=" . urlencode($name_error));
+                header("Location: discount_create.php?error=" . urlencode($name_error));
                 exit;
             }
         } catch (Exception $e) {
             mysqli_rollback($conn);
             $error = true;
-            $description_error = "Error: " . $e->getMessage();
+            $discount_error = "Error: " . $e->getMessage();
         }
     }
 }
@@ -130,27 +92,29 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
     <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>">
 </head>
 
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <body class="modern-dashboard">
     <div class="d-flex">
         <!-- Sidebar -->
-        <?php include '../includes/admin_sidebar.php'; ?>
+        <?php include './layouts/header.php'; ?>
 
         <!-- Main content -->
         <div class="flex-grow-1">
             <!-- Header -->
-            <?php include '../includes/.php'; ?>
 
             <!-- Page content -->
             <div class="dashboard-content">
                 <!-- Page Header -->
                 <div class="welcome-section">
                     <div class="welcome-content">
-                        <h1 class="welcome-title">Create New Product 🏷️</h1>
-                        <p class="welcome-subtitle">Add a new product to your product catalog</p>
+                        <h1 class="welcome-title">Create Discount 🏷️</h1>
+                        <p class="welcome-subtitle">Create new discount package to your Fragrance shop</p>
                     </div>
                     <div class="welcome-actions">
-                        <a href="brand_list.php" class="btn btn-outline-light btn-modern">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Brands
+                        <a href="index.php" class="btn btn-outline-light btn-modern">
+                            <i class="bi bi-arrow-left me-2"></i>Back to dashboard
                         </a>
                     </div>
                 </div>
@@ -189,78 +153,69 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                     <div class="card-header-modern">
                         <div class="card-title">
                             <i class="bi bi-plus-circle me-2"></i>
-                            <span>Brand Information</span>
+                            <span>Discount Create</span>
                         </div>
                     </div>
                     <div class="card-body-modern">
-                        <form action="product_create.php" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <form action="discount_create.php" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="mb-3">
-                                        <label for="product_name" class="form-label fw-bold">
-                                            <i class="bi bi-award me-2"></i>Product Name
+                                        <label for="name_of_package" class="form-label fw-bold">
+                                            <i class="bi bi-award me-2"></i>Discount Name
                                         </label>
                                         <input
                                             type="text"
                                             class="form-control form-control-sm"
-                                            id="product_name"
-                                            name="product_name"
-                                            placeholder="Enter product name"
+                                            id="name_of_package"
+                                            name="name_of_package"
+                                            placeholder="Enter Discount name"
                                             maxlength="50"
-                                            pattern="^[a-zA-Z][a-zA-Z0-9-_\.\s]{1,49}$"
                                             required
-                                            value="<?= isset($_POST['brand_name']) ? htmlspecialchars($_POST['brand_name']) : '' ?>">
+                                            value="<?= isset($_POST['name_of_package']) ? htmlspecialchars($_POST['name_of_package']) : '' ?>">
 
-                                        <?php if (isset($product_error)): ?>
+                                        <?php if (isset($dicount_error)): ?>
                                             <div class="invalid-feedback d-block">
                                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                                <?= htmlspecialchars($product_error) ?>
+                                                <?= htmlspecialchars($discount_error) ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                     <div class="mb-3">
                                         <label for="description" class="form-label fw-bold">
-                                            <i class="bi bi-award me-2"></i> Description
+                                            <i class="bi bi-award me-2"></i> Percentage
                                         </label>
                                         <input
                                             type="text"
                                             class="form-control form-control-sm"
-                                            id="description"
-                                            name="description"
-                                            placeholder="Description"
-                                            maxlength="100"
+                                            id="percentage"
+                                            name="percentage"
+                                            placeholder="percentage"
                                             required
-                                            value="<?= isset($_POST['description']) ? htmlspecialchars($_POST['description']) : '' ?>">
+                                            value="<?= isset($_POST['percentage']) ? htmlspecialchars($_POST['percentage']) : '' ?>">
 
-                                        <?php if (isset($description)): ?>
+                                        <?php if (isset($percentage)): ?>
                                             <div class="invalid-feedback d-block">
                                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                                <?= htmlspecialchars($description_error) ?>
+                                                <?= htmlspecialchars($percentage_error) ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="gender" class="form-label fw-bold">
-                                            <i class="bi bi-gender-ambiguous me-2"></i>Gender
-                                        </label>
-                                        <select
-                                            class="form-select form-select-sm"
-                                            id="gender"
-                                            name="gender"
-                                            required>
-                                            <option value="" disabled selected>Select gender</option>
-                                            <option value="male" <?= (isset($_POST['gender']) && $_POST['gender'] == 'Men') ? 'selected' : '' ?>>Men</option>
-                                            <option value="female" <?= (isset($_POST['gender']) && $_POST['gender'] == 'Women') ? 'selected' : '' ?>>Women</option>
-                                            <option value="other" <?= (isset($_POST['gender']) && $_POST['gender'] == 'other') ? 'selected' : '' ?>>Other</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="product_img" class="form-label">
-                                            <i class="fas fa-image me-2"></i>Product Images
-                                        </label>
-                                        <input type="file" name="image[]" multiple class="form-control" id="product_img" accept="image/*">
-                                        <div class="form-text">Select one or more images for the class (JPG, PNG only)</div>
-                                        <span class="error_msg text-danger"></span>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="start_date" class="form-label">
+                                                <i class="fas fa-calendar-alt me-2"></i>Start Date
+                                            </label>
+                                            <input type="text" class="form-control flatpickr-input" id="start_date" name="start_date" value="<?= $start_date ?>" placeholder="Select start date" readonly>
+                                            <div class="form-text">Click to select start date</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="join_date" class="form-label">
+                                                <i class="fas fa-calendar-alt me-2"></i>End Date
+                                            </label>
+                                            <input type="text" class="form-control flatpickr-input" id="end_date" name="end_date" value="<?= $end_date ?>" placeholder="Select end date" readonly>
+                                            <div class="form-text">Click to select end date</div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -271,9 +226,9 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
                             </div> -->
                             <input type="hidden" name="form_sub" value="1">
                             <button type="submit" class="btn btn-primary btn-lg btn-modern">
-                                <i class="bi bi-check-circle me-2"></i>Create Product
+                                <i class="bi bi-check-circle me-2"></i>Create Discount
                             </button>
-                            <a href="brand_list.php" class="btn btn-outline-secondary btn-lg btn-modern">
+                            <a href="index.php" class="btn btn-outline-secondary btn-lg btn-modern">
                                 <i class="bi bi-x-circle me-2"></i>Cancel
                             </a>
 
@@ -284,8 +239,34 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
         </div>
     </div>
 
+    <!-- Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Initialize Flatpickr for DOB
+        flatpickr("#start_date", {
+            dateFormat: "Y-m-d",
+            maxDate: "2030-12-31",
+            minDate: "2020-01-01",
+            allowInput: false,
+            clickOpens: true,
+            disableMobile: false,
+            static: false,
+            position: "above"
+        });
+
+        // Initialize Flatpickr for Join Date
+        flatpickr("#end_date", {
+            dateFormat: "Y-m-d",
+            maxDate: "2030-12-31",
+            minDate: "2020-01-01",
+            allowInput: false,
+            clickOpens: true,
+            disableMobile: false,
+            static: false,
+            position: "above"
+        });
+
         // Form validation
         (function() {
             'use strict';

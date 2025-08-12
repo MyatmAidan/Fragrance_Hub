@@ -6,7 +6,7 @@ require '../database/central_function.php';
 
 $success = $_GET['success'] ? $_GET['success'] : '';
 
-$row = select_data('brand', $conn, '*');
+$row = select_data('product', $conn, '*');
 
 $delete_id = isset($_GET['delete_id']) ? $_GET['delete_id'] : '';
 if ($delete_id !== '') {
@@ -50,12 +50,12 @@ if ($delete_id !== '') {
                 <!-- Page Header -->
                 <div class="welcome-section">
                     <div class="welcome-content">
-                        <h1 class="welcome-title">Brand Management 🏷️</h1>
-                        <p class="welcome-subtitle">Manage your product brands and categories</p>
+                        <h1 class="welcome-title">Product List 🏷️</h1>
+                        <p class="welcome-subtitle">Manage your product and categories</p>
                     </div>
                     <div class="welcome-actions">
-                        <a href="brand_create.php" class="btn btn-primary btn-modern">
-                            <i class="bi bi-plus-circle me-2"></i>Add New Brand
+                        <a href="product_create.php" class="btn btn-primary btn-modern">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Product
                         </a>
                         <a href="index.php" class="btn btn-outline-light btn-modern">
                             <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
@@ -88,7 +88,7 @@ if ($delete_id !== '') {
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-number"><?= $row->num_rows ?></h3>
-                            <p class="stat-label">Total Brands</p>
+                            <p class="stat-label">Total Products</p>
                         </div>
                         <div class="stat-trend">
                             <span class="trend-up">Active</span>
@@ -96,12 +96,12 @@ if ($delete_id !== '') {
                     </div>
                 </div>
 
-                <!-- Brands Table Card -->
+                <!-- product Table Card -->
                 <div class="dashboard-card">
                     <div class="card-header-modern">
                         <div class="card-title">
                             <i class="bi bi-list-ul me-2"></i>
-                            <span>Brand List</span>
+                            <span>Product List</span>
                         </div>
                         <div class="">
                             <!-- d-flex gap-2 -->
@@ -123,7 +123,16 @@ if ($delete_id !== '') {
                                                 <i class="bi bi-hash me-1"></i>ID
                                             </th>
                                             <th scope="col">
-                                                <i class="bi bi-award me-1"></i>Brand Name
+                                                Product Name
+                                            </th>
+                                            <th scope="col">
+                                                Description
+                                            </th>
+                                            <th scope="col">
+                                                Gender
+                                            </th>
+                                            <th scope="col">
+                                                Image
                                             </th>
                                             <th scope="col" class="text-center" style="width: 200px;">
                                                 <i class="bi bi-gear me-1"></i>Actions
@@ -131,22 +140,52 @@ if ($delete_id !== '') {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php while ($show = $row->fetch_assoc()): ?>
+                                        <?php while ($show = $row->fetch_assoc()):
+                                            // Fetch image for this class
+                                            $img_sql = "SELECT img FROM image WHERE type='product' AND target_id='" . $show['product_id'] . "' LIMIT 1";
+                                            $img_result = $conn->query($img_sql);
+                                            $img_path = '';
+                                            if ($img_result && $img_result->num_rows > 0) {
+                                                $img_row = $img_result->fetch_assoc();
+                                                $img_path = $img_row['img'];
+                                            }
+                                        ?>
                                             <tr>
                                                 <td class="text-center">
                                                     <span class="badge bg-primary rounded-pill">
-                                                        <?= $show['brand_id'] ?>
+                                                        <?= $show['product_id'] ?>
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <div class="">
-                                                        <!-- d-flex align-items-center -->
-                                                        <div class="brand-icon me-3">
-                                                            <i class="bi bi-award-fill text-warning fs-4"></i>
-                                                        </div>
                                                         <div>
-                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['brand_name']) ?></h6>
-                                                            <small class="text-muted">Brand ID: <?= $show['brand_id'] ?></small>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['product_name']) ?></h6>
+                                                            <small class="text-muted">Product ID: <?= $show['product_id'] ?></small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="">
+                                                        <div>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['description']) ?></h6>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="">
+                                                        <div>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['gender']) ?></h6>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="">
+                                                        <div>
+                                                            <?php if ($img_path) { ?>
+                                                                <img src="<?= htmlspecialchars($img_path) ?>" alt="Class Image" style="width:60px;height:60px;object-fit:cover;">
+                                                            <?php } else { ?>
+                                                                <span class="text-muted">No image</span>
+                                                            <?php } ?>
                                                         </div>
                                                     </div>
                                                 </td>

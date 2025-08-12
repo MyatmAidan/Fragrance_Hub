@@ -92,6 +92,7 @@ function create_table($conn)
         "CREATE TABLE IF NOT EXISTS `discount_details` (
             discount_details_id INT AUTO_INCREMENT PRIMARY KEY,
             discount_id INT NOT NULL,
+            percentage int not null,
             start_date DATE NOT NULL,
             end_date DATE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

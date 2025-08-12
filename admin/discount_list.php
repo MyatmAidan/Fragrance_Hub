@@ -6,17 +6,17 @@ require '../database/central_function.php';
 
 $success = $_GET['success'] ? $_GET['success'] : '';
 
-$row = select_data('product', $conn, '*');
+$row = select_data('discount_details', $conn, '*');
 
 $delete_id = isset($_GET['delete_id']) ? $_GET['delete_id'] : '';
 if ($delete_id !== '') {
     $res = deleteData('brand', $conn, "brand_id=$delete_id");
 
     if ($res) {
-        header("Location: product_list.php?success=Product deleted successfully");
+        header("Location: discount_list.php?success=Brand deleted successfully");
         exit;
     } else {
-        header("Location: product_list.php?error=Failed to delete product");
+        header("Location: discount_list.php?error=Failed to delete brand");
         exit;
     }
 }
@@ -50,12 +50,12 @@ if ($delete_id !== '') {
                 <!-- Page Header -->
                 <div class="welcome-section">
                     <div class="welcome-content">
-                        <h1 class="welcome-title">Product List 🏷️</h1>
-                        <p class="welcome-subtitle">Manage your product and categories</p>
+                        <h1 class="welcome-title">Discount Information 🏷️</h1>
+                        <p class="welcome-subtitle">Manage Discount detail and their information</p>
                     </div>
                     <div class="welcome-actions">
-                        <a href="product_create.php" class="btn btn-primary btn-modern">
-                            <i class="bi bi-plus-circle me-2"></i>Add New Product
+                        <a href="discount_create.php" class="btn btn-primary btn-modern">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Discount
                         </a>
                         <a href="index.php" class="btn btn-outline-light btn-modern">
                             <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
@@ -88,7 +88,7 @@ if ($delete_id !== '') {
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-number"><?= $row->num_rows ?></h3>
-                            <p class="stat-label">Total Products</p>
+                            <p class="stat-label">Total Discount Lists</p>
                         </div>
                         <div class="stat-trend">
                             <span class="trend-up">Active</span>
@@ -101,7 +101,7 @@ if ($delete_id !== '') {
                     <div class="card-header-modern">
                         <div class="card-title">
                             <i class="bi bi-list-ul me-2"></i>
-                            <span>Product List</span>
+                            <span>Discount List Details</span>
                         </div>
                         <div class="">
                             <!-- d-flex gap-2 -->
@@ -123,19 +123,16 @@ if ($delete_id !== '') {
                                                 <i class="bi bi-hash me-1"></i>ID
                                             </th>
                                             <th scope="col">
-                                                Product Name
+                                                Discount Name
                                             </th>
                                             <th scope="col">
-                                                Brand Name
+                                                Percentage
                                             </th>
                                             <th scope="col">
-                                                Stock
+                                                Start Date
                                             </th>
                                             <th scope="col">
-                                                Price
-                                            </th>
-                                            <th scope="col">
-                                                Image
+                                                End Date
                                             </th>
                                             <th scope="col" class="text-center" style="width: 200px;">
                                                 <i class="bi bi-gear me-1"></i>Actions
@@ -144,71 +141,46 @@ if ($delete_id !== '') {
                                     </thead>
                                     <tbody>
                                         <?php while ($show = $row->fetch_assoc()):
-                                            $product_brand_sql = "SELECT * FROM product_band WHERE product_id = " . $show['product_id'];
-                                            $product_brand_sql = $conn->query($product_brand_sql);
-                                            $product_brand_row = $product_brand_sql->fetch_assoc();
-
-                                            $brand_id = $product_brand_row['brand_id'];
-                                            $price = $product_brand_row['price'];
-                                            $qty = $product_brand_row['Qty'];
-
-                                            $brand_sql = "SELECT * FROM brand WHERE brand_id = " . $brand_id;
-                                            $brand_sql = $conn->query($brand_sql);
-                                            $brand_row = $brand_sql->fetch_assoc();
-
-                                            $brand_name = $brand_row['brand_name'];
-
-                                            $img_sql = "SELECT img FROM image WHERE type='product' AND target_id='" . $show['product_id'] . "' LIMIT 1";
-                                            $img_result = $conn->query($img_sql);
-                                            $img_path = '';
-                                            if ($img_result && $img_result->num_rows > 0) {
-                                                $img_row = $img_result->fetch_assoc();
-                                                $img_path = $img_row['img'];
-                                            }
+                                            // Fetch discount name 
+                                            $discount_sql = "SELECT * FROM discount WHERE discount_id = " . $show['discount_id'];
+                                            $discount_sql = $conn->query($discount_sql);
+                                            $discount_row = $discount_sql->fetch_assoc();
+                                            // var_dump($discount_row);
+                                            // die();
+                                            $discount_name = $discount_row['name_of_package'];
                                         ?>
                                             <tr>
                                                 <td class="text-center">
                                                     <span class="badge bg-primary rounded-pill">
-                                                        <?= $show['product_id'] ?>
+                                                        <?= $show['discount_details_id'] ?>
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <div class="">
                                                         <div>
-                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['product_name']) ?></h6>
-                                                            <small class="text-muted">Product ID: <?= $show['product_id'] ?></small>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($discount_name) ?></h6>
+                                                            <small class="text-muted">Discount ID: <?= $show['discount_id'] ?></small>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="">
                                                         <div>
-                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($brand_name) ?></h6>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['percentage']) ?></h6>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="">
                                                         <div>
-                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($qty) ?></h6>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['start_date']) ?></h6>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="">
                                                         <div>
-                                                            <h6 class="mb-0 fw-bold">$ <?= htmlspecialchars($price) ?></h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="">
-                                                        <div>
-                                                            <?php if ($img_path) { ?>
-                                                                <img src="<?= htmlspecialchars($img_path) ?>" alt="Class Image" style="width:60px;height:60px;object-fit:cover;">
-                                                            <?php } else { ?>
-                                                                <span class="text-muted">No image</span>
-                                                            <?php } ?>
+                                                            <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['end_date']) ?></h6>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -239,10 +211,10 @@ if ($delete_id !== '') {
                         <?php else: ?>
                             <div class="empty-state text-center py-5">
                                 <i class="bi bi-award display-1 text-muted"></i>
-                                <h4 class="mt-3 text-muted">No Brands Found</h4>
-                                <p class="text-muted">Get started by creating your first brand.</p>
+                                <h4 class="mt-3 text-muted">No Discount Found</h4>
+                                <p class="text-muted">Get started by creating your first discount.</p>
                                 <a href="brand_create.php" class="btn btn-primary btn-modern">
-                                    <i class="bi bi-plus-circle me-2"></i>Create First Brand
+                                    <i class="bi bi-plus-circle me-2"></i>Create First Discount
                                 </a>
                             </div>
                         <?php endif; ?>

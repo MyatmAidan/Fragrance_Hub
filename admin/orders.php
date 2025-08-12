@@ -1,5 +1,5 @@
-<?php 
-include_once 'orders-data.php'; 
+<?php
+include_once 'orders-data.php';
 ?>
 <div class="col-md-12">
   <?php if (isset($orders) && is_array($orders) && count($orders) > 0): ?>

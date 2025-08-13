@@ -1,4 +1,4 @@
-<!-- header.php -->
+<!-- admin_header.php -->
 <header class="navbar navbar-expand navbar-light modern-header">
     <button class="btn btn-light me-2 sidebar-toggle-btn" id="sidebarToggle">
         <i class="bi bi-list"></i>
@@ -6,7 +6,7 @@
 
     <div class="navbar-brand ms-2">
         <i class="bi bi-shop me-2"></i>
-        <strong>iDukan Admin</strong>
+        <strong>Fragrance Hub Admin</strong>
     </div>
 
     <form class="d-none d-md-flex ms-auto me-3">

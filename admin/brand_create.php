@@ -35,28 +35,13 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
 
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Brand - iDukan Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>">
-</head>
-
 <body class="modern-dashboard">
-    <div class="d-flex">
+    <div class="d-flex flex-grow-1">
         <!-- Sidebar -->
-        <?php include '../includes/admin_sidebar.php'; ?>
-
+        <?php include '../admin/layouts/header.php'; ?>
+        <?php include '../includes/admin_header.php' ?>
         <!-- Main content -->
         <div class="flex-grow-1">
-            <!-- Header -->
-            <?php include '../includes/.php'; ?>
-
             <!-- Page content -->
             <div class="dashboard-content">
                 <!-- Page Header -->
@@ -181,7 +166,8 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
             </div>
         </div>
     </div>
-
+    <!-- footer -->
+    <?php include '../admin/layouts/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Form validation

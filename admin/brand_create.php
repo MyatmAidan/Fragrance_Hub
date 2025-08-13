@@ -39,6 +39,7 @@ if (isset($_POST['form_sub']) && $_POST['form_sub'] == 1 && $_SERVER['REQUEST_ME
     <div class="d-flex flex-grow-1">
         <!-- Sidebar -->
         <?php include '../admin/layouts/header.php'; ?>
+        <?php include '../includes/admin_header.php' ?>
         <!-- Main content -->
         <div class="flex-grow-1">
             <!-- Page content -->

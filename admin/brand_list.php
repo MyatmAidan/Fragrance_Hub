@@ -4,7 +4,7 @@ session_start();
 require '../database/db.php';
 require '../database/central_function.php';
 
-$success = $_GET['success'] ? $_GET['success'] : '';
+$success = isset($_GET['success']) ? $_GET['success'] : '';
 
 $row = select_data('brand', $conn, '*');
 

@@ -4,7 +4,7 @@ session_start();
 require '../database/db.php';
 require '../database/central_function.php';
 
-$success = $_GET['success'] ? $_GET['success'] : '';
+$success = isset($_GET['success']) ? $_GET['success'] : '';
 
 $row = select_data('discount_details', $conn, '*');
 
@@ -22,20 +22,6 @@ if ($delete_id !== '') {
 }
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Management - iDukan Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-
 
 <body class="modern-dashboard">
     <div class="d-flex">
@@ -186,12 +172,12 @@ if ($delete_id !== '') {
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="btn-group" role="group">
-                                                        <a href="<?= 'brand_edit.php?id=' . $show['brand_id'] ?>"
+                                                        <a href=""
                                                             class="btn btn-sm btn-outline-primary"
                                                             title="Edit Brand">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
-                                                        <button data-id="<?= $show['brand_id'] ?>"
+                                                        <button data-id="<?= $show['discount_id'] ?>"
                                                             class="btn btn-sm btn-outline-danger delete_btn"
                                                             title="Delete Brand">
                                                             <i class="bi bi-trash"></i>
@@ -263,7 +249,9 @@ if ($delete_id !== '') {
             </div>
         </div>
     </div>
-
+    <!-- footer -->
+    <?php include '../admin/layouts/footer.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {

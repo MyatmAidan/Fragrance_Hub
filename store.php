@@ -6,94 +6,74 @@ ini_set('display_errors', 1);
 include 'includes/header.php';
 include 'includes/nav.php';
 require_once('./database/db.php');
+require_once('./database/central_function.php');
 
-// Connect to database securely
-$link = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE);
-if ($link->connect_error) {
-  echo "<div class='alert alert-danger'>Database connection failed: " . htmlspecialchars($link->connect_error) . "</div>";
-  exit();
-}
+// Select products from the database
+$product_sql = select_data('product', $conn, '*');
 
-$products = [];
-
-if (isset($_GET['search'])) {
-  $keyword = trim($_GET['search']);
-
-  if (!empty($keyword)) {
-    $stmt = $link->prepare("SELECT `tbl_product`.*, `tbl_category`.`cat_name`
-                                FROM `tbl_product`
-                                INNER JOIN `tbl_category`
-                                ON `tbl_product`.`cat_id` = `tbl_category`.`cat_id`
-                                WHERE `pd_name` LIKE CONCAT('%', ?, '%')
-                                ORDER BY `pd_id` DESC");
-    $stmt->bind_param("s", $keyword);
-    $stmt->execute();
-    $res = $stmt->get_result();
-
-    while ($row = $res->fetch_object()) {
-      $products[] = $row;
-    }
-    $stmt->close();
-  }
-} elseif (isset($_GET['category'])) {
-  $category = filter_var($_GET['category'], FILTER_VALIDATE_INT);
-
-  if ($category !== false) {
-    $stmt = $link->prepare("SELECT `tbl_product`.*, `tbl_category`.`cat_name`
-                                FROM `tbl_product`
-                                INNER JOIN `tbl_category`
-                                ON `tbl_product`.`cat_id` = `tbl_category`.`cat_id`
-                                WHERE `tbl_product`.`cat_id` = ?
-                                ORDER BY `pd_id` DESC");
-    $stmt->bind_param("i", $category);
-    $stmt->execute();
-    $res = $stmt->get_result();
-
-    while ($row = $res->fetch_object()) {
-      $products[] = $row;
-    }
-    $stmt->close();
-  }
-} else {
-  $query = "SELECT `tbl_product`.*, `tbl_category`.`cat_name`
-              FROM `tbl_product`
-              INNER JOIN `tbl_category`
-              ON `tbl_product`.`cat_id` = `tbl_category`.`cat_id`
-              ORDER BY `pd_id` DESC";
-  $res = $link->query($query);
-
-  while ($row = $res->fetch_object()) {
-    $products[] = $row;
-  }
-}
 ?>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <div id="main">
   <header class="container">
     <h3 class="page-header">Store</h3>
   </header>
-  <div class="container">
-    <div class="row">
-      <?php if (!empty($products)) { ?>
-        <?php foreach ($products as $product) { ?>
-          <div class="col-sm-6 col-md-3">
-            <div class="thumbnail">
-              <img src="img/uploads/<?php echo htmlspecialchars($product->pd_image); ?>" alt="<?php echo htmlspecialchars($product->pd_name); ?>">
-              <div class="caption">
-                <h4 class="text-center"><?php echo htmlspecialchars($product->pd_name); ?></h4>
-                <p>
-                  <a href="product.php?id=<?php echo $product->pd_id; ?>" class="btn btn-default">View</a>
-                  <a href="cart.php?add=<?php echo $product->pd_id; ?>" class="btn btn-primary">Add to cart</a>
-                </p>
+  <div class="container ">
+    <div class="mb-3 d-flex flex-row flex-wrap gap-3 justify-content-start" style="display: flex; margin: auto; flex-direction: row; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: stretch; padding: 20px 0;">
+      <?php while ($show = $product_sql->fetch_assoc()):
+        $product_brand_sql = "SELECT * FROM product_band WHERE product_id = " . (int)$show['product_id'];
+        $product_brand_sql = $conn->query($product_brand_sql);
+        $product_brand_row = $product_brand_sql ? $product_brand_sql->fetch_assoc() : null;
+
+        $brand_id = null;
+        $price = null;
+        $qty = 0;
+        if ($product_brand_row) {
+          $brand_id = $product_brand_row['brand_id'] ?? null;
+          $price = $product_brand_row['price'] ?? null;
+          $qty = isset($product_brand_row['Qty']) ? (int)$product_brand_row['Qty'] : 0;
+        }
+
+        $img_sql = "SELECT img FROM image WHERE type='product' AND target_id='" . $show['product_id'] . "' LIMIT 1";
+        $img_result = $conn->query($img_sql);
+        $img_path = '';
+        if ($img_result && $img_result->num_rows > 0) {
+          $img_row = $img_result->fetch_assoc();
+          $img_path = $img_row['img'];
+        }
+        // var_dump($img_path);
+        $product_name = $show['product_name'];
+        $description = $show['description'];
+
+      ?>
+        <div class="card" style="width: 280px; display: flex; flex-direction: column; margin: 10px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease, box-shadow 0.2s ease; border: none; overflow: hidden; background: white;">
+          <div style="padding: 15px; text-align: center; background: #f8f9fa;">
+            <?php if ($img_path) { ?>
+              <img src="./admin/<?= htmlspecialchars($img_path) ?>" alt="Product Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+            <?php } else { ?>
+              <div style="width: 100%; height: 200px; background: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                <span class="text-muted">No image</span>
               </div>
+            <?php } ?>
+          </div>
+          <div class="card-body" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
+            <h5 class="card-title" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: #333; line-height: 1.3;"><?= htmlspecialchars($product_name) ?></h5>
+            <p class="card-text" style="font-size: 14px; color: #666; margin-bottom: 15px; line-height: 1.4; flex-grow: 1;"><?= htmlspecialchars($description) ?></p>
+            <div class="product_info d-flex" style="display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: auto;">
+              <?php if (is_numeric($price)) { ?>
+                <p class="card-text" style="font-size: 20px; font-weight: 700; color: #28a745; margin: 0;">$ <?= htmlspecialchars($price) ?></p>
+              <?php } else { ?>
+                <p class="card-text text-muted" style="font-size: 16px; margin: 0;">Price unavailable</p>
+              <?php } ?>
+              <a href="#" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease;"><i class="fa-solid fa-cart-shopping"></i></a>
             </div>
           </div>
-        <?php } ?>
-      <?php } else { ?>
-        <div class="alert alert-info"><strong>Oh no!</strong> No products found!</div>
-      <?php } ?>
+        </div>
+      <?php endwhile; ?>
     </div>
   </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include './includes/footer.php'; ?>

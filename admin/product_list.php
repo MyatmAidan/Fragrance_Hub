@@ -214,12 +214,12 @@ if ($delete_id !== '') {
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="btn-group" role="group">
-                                                        <a href="<?= 'brand_edit.php?id=' . $show['brand_id'] ?>"
+                                                        <a href="<?= 'brand_edit.php?id=' . $brand_id ?>"
                                                             class="btn btn-sm btn-outline-primary"
                                                             title="Edit Brand">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
-                                                        <button data-id="<?= $show['brand_id'] ?>"
+                                                        <button data-id="<?= $brand_id ?>"
                                                             class="btn btn-sm btn-outline-danger delete_btn"
                                                             title="Delete Brand">
                                                             <i class="bi bi-trash"></i>

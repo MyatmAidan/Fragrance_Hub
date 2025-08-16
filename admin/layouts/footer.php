@@ -1,44 +1,48 @@
-  </div> <!-- wrap -->
-  <footer>
-      <div class="container">
-          <p>&copy; Owner 2025</p>
-      </div>
-  </footer>
-  <script src="../node_modules/metismenujs/dist/metismenujs.min.js"></script>
-  <script>
-      document.addEventListener('DOMContentLoaded', function() {
-          // Initialize MetisMenu with no auto-expansion
-          new MetisMenu('.metismenu', {
-              toggle: true,
-              preventDefault: true,
-              activeClass: 'mm-active',
-              collapseClass: 'mm-collapse',
-              collapseInClass: 'mm-show',
-              collapseOutClass: 'mm-hide'
-          });
+<footer>
+    <div class="container ">
+        <p>&copy; Owner 2025</p>
+    </div>
+</footer>
+<script src="../node_modules/metismenujs/dist/metismenujs.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize MetisMenu with no auto-expansion
+        new MetisMenu('.metismenu', {
+            toggle: true,
+            preventDefault: true,
+            activeClass: 'mm-active',
+            collapseClass: 'mm-collapse',
+            collapseInClass: 'mm-show',
+            collapseOutClass: 'mm-hide'
+        });
 
-          // Sidebar toggle functionality
-          const sidebarToggle = document.getElementById('sidebarToggle');
-          const sidebar = document.querySelector('.sidebar');
-          const mainContent = document.querySelector('.main-content');
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
 
-          if (sidebarToggle && sidebar) {
-              sidebarToggle.addEventListener('click', function() {
-                  // Toggle sidebar visibility
-                  if (sidebar.style.display === 'none' || sidebar.style.display === '') {
-                      // Show sidebar
-                      sidebar.style.display = 'block';
-                      if (mainContent) {
-                          mainContent.classList.add('sidebar-visible');
-                      }
-                  } else {
-                      // Hide sidebar
-                      sidebar.style.display = 'none';
-                      if (mainContent) {
-                          mainContent.classList.remove('sidebar-visible');
-                      }
-                  }
-              });
-          }
-      });
-  </script>
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function() {
+                // Toggle sidebar visibility
+                if (sidebar.style.display === 'none' || sidebar.style.display === '') {
+                    // Show sidebar
+                    sidebar.style.display = 'block';
+                    if (mainContent) {
+                        mainContent.classList.add('sidebar-visible');
+                    }
+                } else {
+                    // Hide sidebar
+                    sidebar.style.display = 'none';
+                    if (mainContent) {
+                        mainContent.classList.remove('sidebar-visible');
+                    }
+                }
+            });
+        }
+    });
+</script>

@@ -64,5 +64,5 @@ include 'includes/nav.php';
 </div>
 
 <?php
-include 'includes/footer.php';
+// include 'includes/footer.php';
 ?>

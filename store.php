@@ -43,7 +43,7 @@ $product_sql = select_data('product', $conn, '*');
           $img_row = $img_result->fetch_assoc();
           $img_path = $img_row['img'];
         }
-        // var_dump($img_path);
+
         $product_name = $show['product_name'];
         $description = $show['description'];
 
@@ -67,8 +67,15 @@ $product_sql = select_data('product', $conn, '*');
               <?php } else { ?>
                 <p class="card-text text-muted" style="font-size: 16px; margin: 0;">Price unavailable</p>
               <?php } ?>
-              <a href="#" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease;"><i class="fa-solid fa-cart-shopping"></i></a>
+              <button type="button" class="btn btn-primary cart" data-toggle="modal" data-target="#exampleModal"
+                data-id="<?= $show['product_id'] ?>"
+                data-name="<?= htmlspecialchars($product_name) ?>"
+                data-price="<?= htmlspecialchars($price) ?>"
+                data-img="<?= htmlspecialchars($img_path) ?>"
+                style="padding: 8px 16px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease;"><i class="fa-solid fa-cart-shopping"></i></button>
             </div>
+
+
           </div>
         </div>
       <?php endwhile; ?>
@@ -76,4 +83,123 @@ $product_sql = select_data('product', $conn, '*');
   </div>
 </div>
 
-<?php include './includes/footer.php'; ?>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add to Cart</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="cart-items">
+            <!-- Cart items will be inserted here by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" id="add_item" class="btn btn-primary">Add Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?php //include './includes/footer.php'; 
+?>
+
+<script>
+  $(document).ready(function() {
+    let cart = [];
+    $('.cart').on('click', function(e) {
+      e.preventDefault();
+      let name = $(this).data('name');
+      let id = $(this).data('id');
+      let price = $(this).data('price');
+      let img = $(this).data('img');
+
+      let existing = cart.find(item => item.name === name);
+
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          id: id,
+          name: name,
+          price: price,
+          img: img,
+          qty: 1
+        });
+      }
+      console.log(cart);
+
+      cart_update();
+      $('#exampleModal').modal('show'); // Show modal after adding
+    });
+
+    function cart_update() {
+      let cart_table = "";
+      let total_cost = 0;
+
+      cart.forEach(item => {
+
+        let itemTotal = item.price * item.qty;
+        total_cost += parseFloat(itemTotal.toFixed(2));
+        cart_table += `<tr>
+          <td>
+            <img src="./admin/${item.img}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+            &nbsp;
+            ${item.name}
+          </td>
+          <td>$${item.price}</td>
+          <td>
+            ${item.qty}
+          </td>
+          <td class="total-price">${total_cost}</td>
+        </tr>`;
+
+      })
+      $('#cart-items').html(cart_table);
+      $('#cart-total').text(total.toFixed(2));
+    }
+
+    $('#add_item').on('click', function(e) {
+      e.preventDefault();
+      if (cart.length === 0) {
+        alert('No items in cart to save.');
+        return;
+      }
+      $.ajax({
+        url: 'cart_api.php',
+        type: 'POST', // use POST instead of GET for sending JSON
+        contentType: "application/json",
+        dataType: 'json',
+        data: JSON.stringify({
+          cart: cart
+        }), // send as JSON properly
+        success: function(response) {
+          if (response.success) {
+            alert('Items added to cart successfully!');
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error("AJAX Error:", error);
+        }
+      });
+    });
+
+
+
+  });
+</script>

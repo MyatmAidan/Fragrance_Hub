@@ -44,7 +44,7 @@ function seed_users($conn)
     echo "Users seeded successfully.\n";
 }
 
-// Function to seed brands
+// Function to seed brands based on real data
 function seed_brands($conn)
 {
     $brands = [
@@ -57,7 +57,14 @@ function seed_brands($conn)
         ['brand_name' => 'Hermès'],
         ['brand_name' => 'Bvlgari'],
         ['brand_name' => 'Calvin Klein'],
-        ['brand_name' => 'Paco Rabanne']
+        ['brand_name' => 'Paco Rabanne'],
+        ['brand_name' => 'Louis Vuitton'],
+        ['brand_name' => 'Perfume De Marly'],
+        ['brand_name' => 'Xerjoff'],
+        ['brand_name' => 'Jean Paul Gaultier'],
+        ['brand_name' => 'Givenchy'],
+        ['brand_name' => 'Dolce & Gabbana'],
+        ['brand_name' => 'Replica']
     ];
 
     foreach ($brands as $brand) {
@@ -69,7 +76,7 @@ function seed_brands($conn)
     echo "Brands seeded successfully.\n";
 }
 
-// Function to seed products
+// Function to seed products based on real data
 function seed_products($conn)
 {
     $products = [
@@ -82,7 +89,18 @@ function seed_products($conn)
         ['product_name' => 'Black Opium', 'description' => 'An addictive gourmand fragrance', 'gender' => 'Women'],
         ['product_name' => 'Terre d\'Hermès', 'description' => 'A sophisticated and natural fragrance', 'gender' => 'Men'],
         ['product_name' => 'Omnia Crystalline', 'description' => 'A fresh and light fragrance', 'gender' => 'Women'],
-        ['product_name' => '1 Million', 'description' => 'A provocative and seductive masculine fragrance', 'gender' => 'Men']
+        ['product_name' => '1 Million', 'description' => 'A provocative and seductive masculine fragrance', 'gender' => 'Men'],
+        ['product_name' => 'Dior Sauvage EDT', 'description' => 'dior sauvage edt perfume', 'gender' => 'male'],
+        ['product_name' => 'YSL Y EDP', 'description' => 'It is famous among teenager due to that unique app...', 'gender' => 'male'],
+        ['product_name' => 'Lover', 'description' => 'LV Lover', 'gender' => 'male'],
+        ['product_name' => 'Oud Wood', 'description' => 'Tom Ford Oud Wood', 'gender' => 'male'],
+        ['product_name' => 'N°5 Eau de Parfum', 'description' => 'The legendary fragrance that revolutionized perfumery', 'gender' => 'female'],
+        ['product_name' => 'Bleu de Chanel', 'description' => 'A woody aromatic fragrance for the modern man', 'gender' => 'male'],
+        ['product_name' => 'Miss Dior', 'description' => 'A romantic and elegant fragrance', 'gender' => 'female'],
+        ['product_name' => 'Versace Eros', 'description' => 'A bold, seductive fragrance for the modern man', 'gender' => 'male'],
+        ['product_name' => 'Imagination', 'description' => 'Imagination by Louis Vuitton is a Citrus Aromatic ...', 'gender' => 'male'],
+        ['product_name' => 'D&G The One', 'description' => 'The One for men is a spicy, oriental perfume that ...', 'gender' => 'male'],
+        ['product_name' => 'Jazz Club', 'description' => 'Jazz Club by Maison Martin Margiela is a Leather f...', 'gender' => 'male']
     ];
 
     foreach ($products as $product) {
@@ -94,20 +112,31 @@ function seed_products($conn)
     echo "Products seeded successfully.\n";
 }
 
-// Function to seed product_brand relationships
+// Function to seed product_brand relationships based on real data
 function seed_product_brands($conn)
 {
     $product_brands = [
-        [1, 1, 150.00, 50], // Chanel N°5
-        [2, 1, 120.00, 40], // Chanel Bleu
-        [3, 2, 140.00, 35], // Dior Miss Dior
-        [4, 2, 110.00, 45], // Dior Sauvage
-        [5, 3, 130.00, 30], // Gucci Bloom
-        [6, 4, 100.00, 55], // Versace Eros
-        [7, 2, 125.00, 25], // YSL Black Opium
-        [8, 7, 160.00, 20], // Hermès Terre
-        [9, 8, 90.00, 60],  // Bvlgari Omnia
-        [10, 10, 95.00, 40] // Paco Rabanne 1 Million
+        [1, 1, 150.00, 50],   // Chanel N°5
+        [2, 1, 120.00, 40],   // Chanel Bleu
+        [3, 2, 140.00, 35],   // Dior Miss Dior
+        [4, 2, 110.00, 45],   // Dior Sauvage
+        [5, 3, 130.00, 30],   // Gucci Bloom
+        [6, 4, 100.00, 55],   // Versace Eros
+        [7, 2, 125.00, 25],   // YSL Black Opium
+        [8, 7, 160.00, 20],   // Hermès Terre
+        [9, 8, 90.00, 60],    // Bvlgari Omnia
+        [10, 10, 95.00, 40],  // Paco Rabanne 1 Million
+        [11, 2, 110.00, 70],  // Dior Sauvage EDT
+        [12, 6, 140.00, 45],  // YSL Y EDP
+        [18, 11, 500.00, 100], // Louis Vuitton Lover
+        [19, 5, 180.00, 30],  // Tom Ford Oud Wood
+        [20, 1, 150.00, 50],  // Chanel N°5 (duplicate)
+        [21, 1, 120.00, 40],  // Chanel Bleu (duplicate)
+        [22, 2, 140.00, 35],  // Dior Miss Dior (duplicate)
+        [23, 4, 100.00, 55],  // Versace Eros (duplicate)
+        [24, 11, 450.00, 25], // Louis Vuitton Imagination
+        [25, 16, 120.00, 60], // D&G The One
+        [26, 17, 95.00, 40]   // Replica Jazz Club
     ];
 
     foreach ($product_brands as $pb) {
@@ -151,7 +180,7 @@ function seed_discount_details($conn)
     ];
 
     foreach ($discount_details as $dd) {
-        $sql = "INSERT INTO discount_details (discount_id,percentage, start_date, end_date) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO discount_details (discount_id, percentage, start_date, end_date) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iiss", $dd[0], $dd[1], $dd[2], $dd[3]);
         $stmt->execute();
@@ -225,20 +254,39 @@ function seed_orders($conn)
     echo "Orders seeded successfully.\n";
 }
 
-// Function to seed images
+// Function to seed images based on real data and actual files
 function seed_images($conn)
 {
     $images = [
+        // Brand logos (these are placeholder names since actual logo files aren't in uploads)
         ['type' => 'brand', 'target_id' => '1', 'img' => 'chanel_logo.png'],
         ['type' => 'brand', 'target_id' => '2', 'img' => 'dior_logo.png'],
         ['type' => 'brand', 'target_id' => '3', 'img' => 'gucci_logo.png'],
         ['type' => 'brand', 'target_id' => '4', 'img' => 'versace_logo.png'],
         ['type' => 'brand', 'target_id' => '5', 'img' => 'tomford_logo.png'],
-        ['type' => 'product', 'target_id' => '1', 'img' => 'chanel_no5.jpg'],
-        ['type' => 'product', 'target_id' => '2', 'img' => 'bleu_chanel.jpg'],
-        ['type' => 'product', 'target_id' => '3', 'img' => 'miss_dior.jpg'],
+
+        // Product images using actual files from uploads folder
+        ['type' => 'product', 'target_id' => '1', 'img' => 'upload/20250812_153815_689b43c73bb19.jpg'],
+        ['type' => 'product', 'target_id' => '2', 'img' => 'upload/20250812_154933_689b466d5cd1f.jpg'],
+        ['type' => 'product', 'target_id' => '3', 'img' => 'upload/20250812_155141_689b46ed750d0.jpg'],
         ['type' => 'product', 'target_id' => '4', 'img' => 'sauvage.jpg'],
-        ['type' => 'product', 'target_id' => '5', 'img' => 'gucci_bloom.jpg']
+        ['type' => 'product', 'target_id' => '5', 'img' => 'upload/20250812_182910_689b6bd67b4ff.jpg'],
+        ['type' => 'product', 'target_id' => '6', 'img' => 'upload/20250813_044921_689bfd319cfa5.jpg'],
+        ['type' => 'product', 'target_id' => '7', 'img' => 'upload/20250813_121007_689c647fba253.jpg'],
+        ['type' => 'product', 'target_id' => '8', 'img' => 'upload/20250813_121408_689c6570280ce.jpg'],
+        ['type' => 'product', 'target_id' => '9', 'img' => 'upload/20250813_121604_689c65e45333d.jpg'],
+        ['type' => 'product', 'target_id' => '10', 'img' => 'upload/20250813_133933_689c797552165.jpg'],
+        ['type' => 'product', 'target_id' => '11', 'img' => 'upload/20250813_134928_689c7bc8084f6.jpg'],
+        ['type' => 'product', 'target_id' => '12', 'img' => 'upload/20250813_135247_689c7c8f9795c.jpg'],
+        ['type' => 'product', 'target_id' => '18', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'],
+        ['type' => 'product', 'target_id' => '19', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '20', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '21', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '22', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '23', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '24', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '25', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg'], // Using available image
+        ['type' => 'product', 'target_id' => '26', 'img' => 'upload/20250813_135636_689c7d749f3ce.jpg']  // Using available image
     ];
 
     foreach ($images as $image) {
@@ -253,8 +301,8 @@ function seed_images($conn)
 // Main seeding function
 function run_seeder($conn)
 {
-    echo "Starting database seeding...\n";
-    echo "========================\n";
+    echo "Starting database seeding with real data...\n";
+    echo "==========================================\n";
 
     // Clear existing data
     clear_tables($conn);
@@ -271,8 +319,9 @@ function run_seeder($conn)
     seed_orders($conn);
     seed_images($conn);
 
-    echo "========================\n";
+    echo "==========================================\n";
     echo "Database seeding completed successfully!\n";
+    echo "Note: This seeder now uses your real database structure and actual image files.\n";
 }
 
 // Run the seeder

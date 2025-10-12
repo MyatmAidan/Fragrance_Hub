@@ -1,325 +1,168 @@
 <?php
-session_start();
-
-require '../database/db.php';
+require '../database/dbrequire.php';
+require '../plugins/common.php';
 require '../database/central_function.php';
 
 $success = isset($_GET['success']) ? $_GET['success'] : '';
-
-$row = select_data('product', $conn, '*');
-
+$error = isset($_GET['error']) ? $_GET['error'] : '';
 $delete_id = isset($_GET['delete_id']) ? $_GET['delete_id'] : '';
-if ($delete_id !== '') {
-    $res = deleteData('brand', $conn, "brand_id=$delete_id");
 
+if ($delete_id !== '') {
+    $res = deleteData('product_brand', $conn, "product_id=$delete_id");
     if ($res) {
-        header("Location: product_list.php?success=Product deleted successfully");
+        header("Location: {$admin_base_url}product_list.php?success=Product deleted successfully.");
         exit;
     } else {
-        header("Location: product_list.php?error=Failed to delete product");
+        header("Location: {$admin_base_url}product_list.php?error=Delete failed!");
         exit;
     }
 }
-include '../admin/layouts/header.php';
+
+$query = "
+    SELECT pd.product_id, pd.qty, pd.price, i.img,pd.created_at,
+           p.product_name, b.brand_name
+    FROM product_brand pd
+    JOIN product p ON pd.product_id = p.product_id
+    JOIN image i ON pd.product_id = i.target_id AND i.type = 'product'
+    JOIN brand b ON pd.brand_id = b.brand_id
+    ORDER BY pd.product_id DESC
+";
+$res = $conn->query($query);
+
+require './layout/header.php';
 ?>
 
 
-<!-- Page content -->
-<div class="dashboard-wrapper">
-    <!-- Page Header -->
-    <div class="welcome-section">
-        <div class="welcome-content">
-            <h1 class="welcome-title">Product List 🏷️</h1>
-            <p class="welcome-subtitle">Manage your product and categories</p>
-        </div>
-        <div class="welcome-actions">
-            <a href="product_create.php" class="btn btn-primary btn-modern">
-                <i class="bi bi-plus-circle me-2"></i>Add New Product
-            </a>
-            <a href="index.php" class="btn btn-outline-light btn-modern">
-                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
-            </a>
-        </div>
-    </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Alert Messages -->
-    <?php if ($success !== ''): ?>
-        <div class="alert alert-success alert-modern alert-dismissible fade show" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <i class="bi bi-check-circle me-2"></i>
-            <?= htmlspecialchars($success) ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['error'])): ?>
-        <div class="alert alert-danger alert-modern alert-dismissible fade show" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <?= htmlspecialchars($_GET['error']) ?>
-        </div>
-    <?php endif; ?>
-
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card stat-card-info">
-            <div class="stat-icon">
-                <i class="bi bi-award"></i>
-            </div>
-            <div class="stat-content">
-                <h3 class="stat-number"><?= $row->num_rows ?></h3>
-                <p class="stat-label">Total Products</p>
-            </div>
-            <div class="stat-trend">
-                <span class="trend-up">Active</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- product Table Card -->
-    <div class="dashboard-card">
-        <div class="card-header-modern">
-            <div class="card-title">
-                <i class="bi bi-list-ul me-2"></i>
-                <span>Product List</span>
-            </div>
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between">
+            <h1>Products List</h1>
             <div class="">
-                <!-- d-flex gap-2 -->
-                <button class="btn btn-sm btn-outline-primary" onclick="exportBrands()">
-                    <i class="bi bi-download me-1"></i>Export
-                </button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="printBrands()">
-                    <i class="bi bi-printer me-1"></i>Print
-                </button>
+                <a href="<?= $admin_base_url . 'product_create.php' ?>" class="btn btn-primary">
+                    Create New Product
+                </a>
             </div>
         </div>
-        <div class="card-body-modern">
-            <?php if ($row->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-center" style="width: 80px;">
-                                    <i class="bi bi-hash me-1"></i>ID
-                                </th>
-                                <th scope="col">
-                                    Product Name
-                                </th>
-                                <th scope="col">
-                                    Brand Name
-                                </th>
-                                <th scope="col">
-                                    Stock
-                                </th>
-                                <th scope="col">
-                                    Price
-                                </th>
-                                <th scope="col">
-                                    Image
-                                </th>
-                                <th scope="col" class="text-center" style="width: 200px;">
-                                    <i class="bi bi-gear me-1"></i>Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($show = $row->fetch_assoc()):
-                                $product_brand_sql = "SELECT * FROM product_band WHERE product_id = " . $show['product_id'];
-                                $product_brand_sql = $conn->query($product_brand_sql);
-                                $product_brand_row = $product_brand_sql->fetch_assoc();
+        <div class="col-md-4 offset-md-8 col-sm-6 offset-sm-6">
 
-                                $brand_id = $product_brand_row['brand_id'];
-                                $price = $product_brand_row['price'];
-                                $qty = $product_brand_row['Qty'];
-
-                                $brand_sql = "SELECT * FROM brand WHERE brand_id = " . $brand_id;
-                                $brand_sql = $conn->query($brand_sql);
-                                $brand_row = $brand_sql->fetch_assoc();
-
-                                $brand_name = $brand_row['brand_name'];
-
-                                $img_sql = "SELECT img FROM image WHERE type='product' AND target_id='" . $show['product_id'] . "' LIMIT 1";
-                                $img_result = $conn->query($img_sql);
-                                $img_path = '';
-                                if ($img_result && $img_result->num_rows > 0) {
-                                    $img_row = $img_result->fetch_assoc();
-                                    $img_path = $img_row['img'];
-                                }
-                            ?>
-                                <tr>
-                                    <td class="text-center">
-                                        <span class="badge bg-primary rounded-pill">
-                                            <?= $show['product_id'] ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="">
-                                            <div>
-                                                <h6 class="mb-0 fw-bold"><?= htmlspecialchars($show['product_name']) ?></h6>
-                                                <small class="text-muted">Product ID: <?= $show['product_id'] ?></small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="">
-                                            <div>
-                                                <h6 class="mb-0 fw-bold"><?= htmlspecialchars($brand_name) ?></h6>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="">
-                                            <div>
-                                                <h6 class="mb-0 fw-bold"><?= htmlspecialchars($qty) ?></h6>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="">
-                                            <div>
-                                                <h6 class="mb-0 fw-bold">$ <?= htmlspecialchars($price) ?></h6>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="">
-                                            <div>
-                                                <?php if ($img_path) { ?>
-                                                    <img src="<?= htmlspecialchars($img_path) ?>" alt="Class Image" style="width:60px;height:60px;object-fit:cover;">
-                                                <?php } else { ?>
-                                                    <span class="text-muted">No image</span>
-                                                <?php } ?>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="<?= 'brand_edit.php?id=' . $brand_id ?>"
-                                                class="btn btn-sm btn-outline-primary"
-                                                title="Edit Brand">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                            <button data-id="<?= $brand_id ?>"
-                                                class="btn btn-sm btn-outline-danger delete_btn"
-                                                title="Delete Brand">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <a href="#"
-                                                class="btn btn-sm btn-outline-info"
-                                                title="View Products">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
+            <?php if ($success !== '') { ?>
+                <div class="alert alert-success">
+                    <?= $success ?>
                 </div>
-            <?php else: ?>
-                <div class="empty-state text-center py-5">
-                    <i class="bi bi-award display-1 text-muted"></i>
-                    <h4 class="mt-3 text-muted">No Brands Found</h4>
-                    <p class="text-muted">Get started by creating your first brand.</p>
-                    <a href="brand_create.php" class="btn btn-primary btn-modern">
-                        <i class="bi bi-plus-circle me-2"></i>Create First Brand
-                    </a>
+            <?php } ?>
+            <?php if ($error !== '') { ?>
+                <div class="alert alert-danger">
+                    <?= $error ?>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
-    </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <div class="dashboard-card">
-            <div class="card-header-modern">
-                <div class="card-title">
-                    <i class="bi bi-lightning me-2"></i>
-                    <span>Quick Actions</span>
-                </div>
-            </div>
-            <div class="card-body-modern">
-                <div class="actions-grid">
-                    <a href="brand_create.php" class="action-card action-primary">
-                        <div class="action-icon">
-                            <i class="bi bi-plus-circle"></i>
+        <div class="row">
+            <div class="col-12">
+                <div class="card my-4">
+                    <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                        <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3">
+                            <h6 class="text-white text-capitalize ps-3">Product List</h6>
                         </div>
-                        <span>Add Brand</span>
-                    </a>
-                    <a href="products.php" class="action-card action-success">
-                        <div class="action-icon">
-                            <i class="bi bi-box"></i>
+                    </div>
+                    <div class="card-body px-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Price</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Stock</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
+                                        <th class="text-secondary opacity-7">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($res->num_rows > 0) {
+                                        while ($row = $res->fetch_assoc()) { ?>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex px-2 py-1">
+                                                        <div>
+                                                            <img src="./upload/<?= $row['img'] ?>" class="avatar avatar-sm me-3 border-radius-lg" alt="user1">
+                                                        </div>
+                                                        <div class="d-flex flex-column justify-content-center">
+                                                            <h6 class="mb-0 text-sm"><?= $row['product_name'] ?></h6>
+                                                            <p class="text-xs text-secondary mb-0"><?= $row['brand_name'] ?></p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <p class="text-xs text-secondary mb-0"><?= $row['price'] ?></p>
+                                                    <p class="text-xs font-weight-bold mb-0">MMK</p>
+                                                </td>
+                                                <td class="align-middle text-center text-sm">
+                                                    <span class="badge badge-sm text-secondary"><?= $row['qty'] ?></span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <span class="text-secondary text-xs font-weight-bold"><?= $row['created_at'] ?></span>
+                                                </td>
+                                                <td class="align-middle">
+                                                    <a href="<?= $admin_base_url . 'product_edit.php?id=' . $row['product_detail_id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                                                    <button data-id="<?= $row['brand_id'] ?> data-val ='<?= $row['product_id'] ?>' " class="btn btn-sm btn-danger delete_btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                    <?php }
+                                    } ?>
+                                </tbody>
+                            </table>
                         </div>
-                        <span>Manage Products</span>
-                    </a>
-                    <a href="category.php" class="action-card action-info">
-                        <div class="action-icon">
-                            <i class="bi bi-tags"></i>
-                        </div>
-                        <span>Categories</span>
-                    </a>
-                    <a href="index.php" class="action-card action-warning">
-                        <div class="action-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <span>Dashboard</span>
-                    </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-</div>
-</div>
-<!-- footer -->
-<?php include '../admin/layouts/footer.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SweetAlert success/error messages -->
+<?php if ($success): ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '<?= $success ?>',
+            confirmButtonColor: '#3085d6'
+        });
+    </script>
+<?php endif; ?>
+<?php if ($error): ?>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '<?= $error ?>',
+            confirmButtonColor: '#d33'
+        });
+    </script>
+<?php endif; ?>
+
 <script>
-    $(document).ready(function() {
-        // Delete confirmation with SweetAlert2
+    $(function() {
         $('.delete_btn').click(function() {
             const id = $(this).data('id');
-            const brandName = $(this).closest('tr').find('h6').text();
-
             Swal.fire({
-                title: 'Delete Brand?',
-                html: `Are you sure you want to delete <strong>${brandName}</strong>?<br><br>
-                           <small class="text-muted">This action cannot be undone.</small>`,
+                title: 'Are you sure?',
+                text: "This action cannot be undone.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="bi bi-trash me-1"></i>Yes, delete it!',
-                cancelButtonText: 'Cancel',
-                reverseButtons: true
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'brand_list.php?delete_id=' + id;
+                    window.location.href = 'product_detail_list.php?delete_id=' + id
                 }
             });
         });
-
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            $('.alert').fadeOut('slow');
-        }, 5000);
     });
-
-    // Export brands function
-    function exportBrands() {
-        Swal.fire({
-            title: 'Export Brands',
-            text: 'This feature will be available soon!',
-            icon: 'info',
-            confirmButtonText: 'OK'
-        });
-    }
-
-    // Print brands function
-    function printBrands() {
-        window.print();
-    }
 </script>
-</body>
 
-</html>
+<?php require './layout/footer.php'; ?>

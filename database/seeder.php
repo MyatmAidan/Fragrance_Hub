@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once 'dbrequire.php';
 
 // Function to clear existing data
 function clear_tables($conn)
@@ -11,7 +11,7 @@ function clear_tables($conn)
         'discount',
         'recepties',
         'payment_method',
-        'product_band',
+        'product_brand',
         'product',
         'brand',
         'user'
@@ -23,6 +23,7 @@ function clear_tables($conn)
     }
     echo "All tables cleared successfully.\n";
 }
+
 
 // Function to seed users
 function seed_users($conn)
@@ -44,72 +45,54 @@ function seed_users($conn)
     echo "Users seeded successfully.\n";
 }
 
+
 // Function to seed brands based on real data
 function seed_brands($conn)
 {
-    $brands = [
-        ['brand_name' => 'Chanel'],
-        ['brand_name' => 'Dior'],
-        ['brand_name' => 'Gucci'],
-        ['brand_name' => 'Versace'],
-        ['brand_name' => 'Tom Ford'],
-        ['brand_name' => 'Yves Saint Laurent'],
-        ['brand_name' => 'Hermès'],
-        ['brand_name' => 'Bvlgari'],
-        ['brand_name' => 'Calvin Klein'],
-        ['brand_name' => 'Paco Rabanne'],
-        ['brand_name' => 'Louis Vuitton'],
-        ['brand_name' => 'Perfume De Marly'],
-        ['brand_name' => 'Xerjoff'],
-        ['brand_name' => 'Jean Paul Gaultier'],
-        ['brand_name' => 'Givenchy'],
-        ['brand_name' => 'Dolce & Gabbana'],
-        ['brand_name' => 'Replica']
-    ];
-
-    foreach ($brands as $brand) {
-        $sql = "INSERT INTO brand (brand_name) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $brand['brand_name']);
+    $brands = ['Chanel', 'Dior', 'Gucci', 'Versace', 'Tom Ford', 'Yves Saint Laurent', 'Hermès', 'Bvlgari', 'Calvin Klein', 'Paco Rabanne', 'Louis Vuitton', 'Perfume De Marly', 'Xerjoff', 'Jean Paul Gaultier', 'Givenchy', 'Dolce & Gabbana', 'Replica'];
+    $map = [];
+    $stmt = $conn->prepare("INSERT INTO brand (brand_name) VALUES (?)");
+    foreach ($brands as $b) {
+        $stmt->bind_param("s", $b);
         $stmt->execute();
+        $map[$b] = (int)$conn->insert_id;
     }
     echo "Brands seeded successfully.\n";
+    return $map;
 }
 
 // Function to seed products based on real data
 function seed_products($conn)
 {
-    $products = [
-        ['product_name' => 'N°5 Eau de Parfum', 'description' => 'The legendary fragrance that revolutionized perfumery', 'gender' => 'Women'],
-        ['product_name' => 'Bleu de Chanel', 'description' => 'A woody aromatic fragrance for the modern man', 'gender' => 'Men'],
-        ['product_name' => 'Miss Dior', 'description' => 'A romantic and elegant fragrance', 'gender' => 'Women'],
-        ['product_name' => 'Sauvage', 'description' => 'A powerful and fresh masculine fragrance', 'gender' => 'Men'],
-        ['product_name' => 'Gucci Bloom', 'description' => 'A celebration of the authenticity, vitality and diversity of women', 'gender' => 'Women'],
-        ['product_name' => 'Versace Eros', 'description' => 'A bold, seductive fragrance for the modern man', 'gender' => 'Men'],
-        ['product_name' => 'Black Opium', 'description' => 'An addictive gourmand fragrance', 'gender' => 'Women'],
-        ['product_name' => 'Terre d\'Hermès', 'description' => 'A sophisticated and natural fragrance', 'gender' => 'Men'],
-        ['product_name' => 'Omnia Crystalline', 'description' => 'A fresh and light fragrance', 'gender' => 'Women'],
-        ['product_name' => '1 Million', 'description' => 'A provocative and seductive masculine fragrance', 'gender' => 'Men'],
-        ['product_name' => 'Dior Sauvage EDT', 'description' => 'dior sauvage edt perfume', 'gender' => 'male'],
-        ['product_name' => 'YSL Y EDP', 'description' => 'It is famous among teenager due to that unique app...', 'gender' => 'male'],
-        ['product_name' => 'Lover', 'description' => 'LV Lover', 'gender' => 'male'],
-        ['product_name' => 'Oud Wood', 'description' => 'Tom Ford Oud Wood', 'gender' => 'male'],
-        ['product_name' => 'N°5 Eau de Parfum', 'description' => 'The legendary fragrance that revolutionized perfumery', 'gender' => 'female'],
-        ['product_name' => 'Bleu de Chanel', 'description' => 'A woody aromatic fragrance for the modern man', 'gender' => 'male'],
-        ['product_name' => 'Miss Dior', 'description' => 'A romantic and elegant fragrance', 'gender' => 'female'],
-        ['product_name' => 'Versace Eros', 'description' => 'A bold, seductive fragrance for the modern man', 'gender' => 'male'],
-        ['product_name' => 'Imagination', 'description' => 'Imagination by Louis Vuitton is a Citrus Aromatic ...', 'gender' => 'male'],
-        ['product_name' => 'D&G The One', 'description' => 'The One for men is a spicy, oriental perfume that ...', 'gender' => 'male'],
-        ['product_name' => 'Jazz Club', 'description' => 'Jazz Club by Maison Martin Margiela is a Leather f...', 'gender' => 'male']
+    $rows = [
+        ['N°5 Eau de Parfum', 'The legendary fragrance that revolutionized perfumery', 'Female'],
+        ['Bleu de Chanel', 'A woody aromatic fragrance for the modern man', 'Male'],
+        ['Miss Dior', 'A romantic and elegant fragrance', 'Female'],
+        ['Sauvage', 'A powerful and fresh masculine fragrance', 'Male'],
+        ['Gucci Bloom', 'A celebration of the vitality and diversity of women', 'Female'],
+        ['Versace Eros', 'A bold, seductive fragrance for the modern man', 'Male'],
+        ['Black Opium', 'An addictive gourmand fragrance', 'Female'],
+        ['Terre d\'Hermès', 'A sophisticated and natural fragrance', 'Male'],
+        ['Omnia Crystalline', 'A fresh and light fragrance', 'Female'],
+        ['1 Million', 'A provocative and seductive masculine fragrance', 'Male'],
+        ['Dior Sauvage EDT', 'Dior Sauvage Eau de Toilette perfume', 'Male'],
+        ['YSL Y EDP', 'Famous among teenagers for its unique scent', 'Male'],
+        ['Lover', 'Louis Vuitton Lover fragrance', 'Male'],
+        ['Oud Wood', 'Tom Ford Oud Wood fragrance', 'Male'],
+        ['Imagination', 'Imagination by Louis Vuitton, a Citrus Aromatic scent', 'Male'],
+        ['D&G The One', 'A spicy, oriental perfume for men', 'Male'],
+        ['Jazz Club', 'Jazz Club by Maison Margiela, a Leather fragrance', 'Male']
     ];
 
-    foreach ($products as $product) {
-        $sql = "INSERT INTO product (product_name, description, gender) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sss", $product['product_name'], $product['description'], $product['gender']);
+    $map = [];
+    $stmt = $conn->prepare("INSERT INTO product (product_name,description,gender) VALUES (?,?,?)");
+    foreach ($rows as [$n, $d, $g]) {
+        $stmt->bind_param("sss", $n, $d, $g);
         $stmt->execute();
+        $map[$n] = (int)$conn->insert_id;
     }
     echo "Products seeded successfully.\n";
+    return $map;
 }
 
 // Function to seed product_brand relationships based on real data
@@ -128,127 +111,106 @@ function seed_product_brands($conn)
         [10, 10, 95.00, 40],  // Paco Rabanne 1 Million
         [11, 2, 110.00, 70],  // Dior Sauvage EDT
         [12, 6, 140.00, 45],  // YSL Y EDP
-        [18, 11, 500.00, 100], // Louis Vuitton Lover
-        [19, 5, 180.00, 30],  // Tom Ford Oud Wood
-        [20, 1, 150.00, 50],  // Chanel N°5 (duplicate)
-        [21, 1, 120.00, 40],  // Chanel Bleu (duplicate)
-        [22, 2, 140.00, 35],  // Dior Miss Dior (duplicate)
-        [23, 4, 100.00, 55],  // Versace Eros (duplicate)
-        [24, 11, 450.00, 25], // Louis Vuitton Imagination
-        [25, 16, 120.00, 60], // D&G The One
-        [26, 17, 95.00, 40]   // Replica Jazz Club
+        [13, 11, 500.00, 100], // Louis Vuitton Lover
+        [14, 5, 180.00, 30],  // Tom Ford Oud Wood
+        [15, 1, 150.00, 50],  // Chanel N°5 (duplicate)
+        [16, 1, 120.00, 40],  // Chanel Bleu (duplicate)
+        [17, 2, 140.00, 35],  // Dior Miss Dior (duplicate)
+        [18, 4, 100.00, 55],  // Versace Eros (duplicate)
+        [19, 11, 450.00, 25], // Louis Vuitton Imagination
+        [20, 16, 120.00, 60], // D&G The One
+        [21, 17, 95.00, 40]   // Replica Jazz Club
     ];
 
-    foreach ($product_brands as $pb) {
-        $sql = "INSERT INTO product_band (product_id, brand_id, price, Qty) VALUES (?, ?, ?, ?)";
+    $product_brand_map = [];
+    foreach ($product_brands as $index => $pb) {
+        $sql = "INSERT INTO product_brand (product_id, brand_id, price, Qty) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iidi", $pb[0], $pb[1], $pb[2], $pb[3]);
         $stmt->execute();
+        $product_brand_map[$index + 1] = (int)$conn->insert_id;
     }
     echo "Product-Brand relationships seeded successfully.\n";
+    return $product_brand_map;
 }
 
 // Function to seed discounts
+
 function seed_discounts($conn)
 {
-    $discounts = [
-        ['name_of_package' => 'Summer Sale'],
-        ['name_of_package' => 'Holiday Special'],
-        ['name_of_package' => 'New Customer Discount'],
-        ['name_of_package' => 'Loyalty Reward'],
-        ['name_of_package' => 'Seasonal Clearance']
-    ];
-
-    foreach ($discounts as $discount) {
-        $sql = "INSERT INTO discount (name_of_package) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $discount['name_of_package']);
+    $names = ['Summer Sale', 'Holiday Special', 'New Customer Discount', 'Loyalty Reward', 'Seasonal Clearance'];
+    $stmt = $conn->prepare("INSERT INTO `discount` (name_of_package) VALUES (?)");
+    foreach ($names as $n) {
+        $stmt->bind_param("s", $n);
         $stmt->execute();
     }
     echo "Discounts seeded successfully.\n";
 }
 
-// Function to seed discount details
 function seed_discount_details($conn)
 {
-    $discount_details = [
-        [1, 10, '2024-06-01', '2024-08-31'], // Summer Sale
-        [2, 20, '2024-12-01', '2024-12-31'], // Holiday Special
-        [3, 25, '2024-01-01', '2024-12-31'], // New Customer Discount
-        [4, 15, '2024-01-01', '2024-12-31'], // Loyalty Reward
-        [5, 10, '2024-03-01', '2024-03-31']  // Seasonal Clearance
+    $rows = [
+        [1, 10, '2024-06-01', '2024-08-31'],
+        [2, 20, '2024-12-01', '2024-12-31'],
+        [3, 25, '2024-01-01', '2024-12-31'],
+        [4, 15, '2024-01-01', '2024-12-31'],
+        [5, 10, '2024-03-01', '2024-03-31']
     ];
-
-    foreach ($discount_details as $dd) {
-        $sql = "INSERT INTO discount_details (discount_id, percentage, start_date, end_date) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiss", $dd[0], $dd[1], $dd[2], $dd[3]);
+    $stmt = $conn->prepare("INSERT INTO `discount_details` (discount_id, percentage, start_date, end_date) VALUES (?,?,?,?)");
+    foreach ($rows as [$did, $pct, $s, $e]) {
+        $stmt->bind_param("iiss", $did, $pct, $s, $e);
         $stmt->execute();
     }
     echo "Discount details seeded successfully.\n";
 }
 
-// Function to seed payment methods
 function seed_payment_methods($conn)
 {
-    $payment_methods = [
-        ['name_of_method' => 'Credit Card'],
-        ['name_of_method' => 'Debit Card'],
-        ['name_of_method' => 'PayPal'],
-        ['name_of_method' => 'Apple Pay'],
-        ['name_of_method' => 'Google Pay'],
-        ['name_of_method' => 'Bank Transfer']
-    ];
-
-    foreach ($payment_methods as $pm) {
-        $sql = "INSERT INTO payment_method (name_of_method) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $pm['name_of_method']);
+    $names = ['Credit Card', 'Debit Card', 'PayPal', 'Apple Pay', 'Google Pay', 'Bank Transfer'];
+    $stmt = $conn->prepare("INSERT INTO `payment_method` (name_of_method) VALUES (?)");
+    foreach ($names as $n) {
+        $stmt->bind_param("s", $n);
         $stmt->execute();
     }
     echo "Payment methods seeded successfully.\n";
 }
 
-// Function to seed recepties (receipts)
 function seed_recepties($conn)
 {
-    $recepties = [
+    $rows = [
         [1, '2024-01-15', 250.00],
         [2, '2024-01-20', 180.00],
         [1, '2024-02-05', 320.00],
         [4, '2024-02-10', 150.00],
         [5, '2024-02-15', 280.00]
     ];
-
-    foreach ($recepties as $receipt) {
-        $sql = "INSERT INTO recepties (user_id, date, total) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("isd", $receipt[0], $receipt[1], $receipt[2]);
+    $stmt = $conn->prepare("INSERT INTO `recepties` (user_id, date, total) VALUES (?,?,?)");
+    foreach ($rows as [$uid, $date, $total]) {
+        $stmt->bind_param("isd", $uid, $date, $total);
         $stmt->execute();
     }
     echo "Receipts seeded successfully.\n";
 }
 
 // Function to seed orders
-function seed_orders($conn)
+function seed_orders($conn, $product_brand_map)
 {
-    $orders = [
-        [1, 1, 1, 150.00, 1, 1], // Receipt 1, Product-Brand 1, Discount 1
-        [1, 2, 2, 120.00, 1, 1], // Receipt 1, Product-Brand 2, Discount 2
-        [2, 3, 3, 140.00, 1, 2], // Receipt 2, Product-Brand 3, Discount 3
-        [2, 4, 4, 110.00, 1, 2], // Receipt 2, Product-Brand 4, Discount 4
-        [3, 5, 5, 130.00, 2, 1], // Receipt 3, Product-Brand 5, Discount 5
-        [3, 6, 1, 100.00, 1, 1], // Receipt 3, Product-Brand 6, Discount 1
-        [4, 7, 2, 125.00, 1, 3], // Receipt 4, Product-Brand 7, Discount 2
-        [5, 8, 3, 160.00, 1, 4], // Receipt 5, Product-Brand 8, Discount 3
-        [5, 9, 4, 90.00, 2, 4],  // Receipt 5, Product-Brand 9, Discount 4
-        [5, 10, 5, 95.00, 1, 5]  // Receipt 5, Product-Brand 10, Discount 5
+    // Use the actual product_brand_id values from the mapping
+    $rows = [
+        [1, $product_brand_map[1], 1, 150.00, 1, 1],   // Chanel N°5
+        [1, $product_brand_map[2], 2, 120.00, 1, 1],   // Chanel Bleu
+        [2, $product_brand_map[3], 3, 140.00, 1, 2],   // Dior Miss Dior
+        [2, $product_brand_map[4], 4, 110.00, 1, 2],   // Dior Sauvage
+        [3, $product_brand_map[5], 5, 130.00, 2, 1],   // Gucci Bloom
+        [3, $product_brand_map[6], 1, 100.00, 1, 1],   // Versace Eros
+        [4, $product_brand_map[7], 2, 125.00, 1, 3],   // YSL Black Opium
+        [5, $product_brand_map[8], 3, 160.00, 1, 4],   // Hermès Terre
+        [5, $product_brand_map[9], 4, 90.00, 2, 4],    // Bvlgari Omnia
+        [5, $product_brand_map[10], 5, 95.00, 1, 5]    // Paco Rabanne 1 Million
     ];
-
-    foreach ($orders as $order) {
-        $sql = "INSERT INTO `order` (recepties_id, product_brand_id, discount_details_id, line_total, qty, payment_method_id) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiidii", $order[0], $order[1], $order[2], $order[3], $order[4], $order[5]);
+    $stmt = $conn->prepare("INSERT INTO `order` (recepties_id, product_brand_id, discount_details_id, line_total, qty, payment_method_id) VALUES (?,?,?,?,?,?)");
+    foreach ($rows as [$rid, $pbid, $ddid, $lt, $qty, $pm]) {
+        $stmt->bind_param("iiidii", $rid, $pbid, $ddid, $lt, $qty, $pm);
         $stmt->execute();
     }
     echo "Orders seeded successfully.\n";
@@ -298,6 +260,8 @@ function seed_images($conn)
     echo "Images seeded successfully.\n";
 }
 
+
+
 // Main seeding function
 function run_seeder($conn)
 {
@@ -311,18 +275,19 @@ function run_seeder($conn)
     seed_users($conn);
     seed_brands($conn);
     seed_products($conn);
-    seed_product_brands($conn);
+    $product_brand_map = seed_product_brands($conn);
     seed_discounts($conn);
     seed_discount_details($conn);
     seed_payment_methods($conn);
     seed_recepties($conn);
-    seed_orders($conn);
+    seed_orders($conn, $product_brand_map);
     seed_images($conn);
 
     echo "==========================================\n";
     echo "Database seeding completed successfully!\n";
     echo "Note: This seeder now uses your real database structure and actual image files.\n";
 }
+
 
 // Run the seeder
 run_seeder($conn);

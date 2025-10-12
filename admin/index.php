@@ -1,299 +1,866 @@
+<!--
+=========================================================
+* Material Dashboard 3 - v3.2.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/material-dashboard
+* Copyright 2024 Creative Tim (https://www.creative-tim.com)
+* Licensed under MIT (https://www.creative-tim.com/license)
+* Coded by Creative Tim
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-->
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (empty($_SESSION['SESS_USER_ID']) || trim($_SESSION['SESS_USER_ID']) === '') {
-    header("Location: ../access-denied.php");
-    exit();
-}
-
-if ((int) ($_SESSION['SESS_IS_ADMIN'] ?? 0) !== 1) {
-    header("Location: ../access-denied.php");
-    exit();
-}
-
-// Include database connection
-require_once '../database/db.php';
-
-// Get dashboard statistics
-$stats = [];
-
-// Total products
-$result = $conn->query("SELECT COUNT(*) as total FROM product WHERE deleted_at IS NULL");
-$stats['products'] = $result->fetch_assoc()['total'];
-
-// Total brands
-$result = $conn->query("SELECT COUNT(*) as total FROM brand WHERE deleted_at IS NULL");
-$stats['brands'] = $result->fetch_assoc()['total'];
-
-// Total orders
-$result = $conn->query("SELECT COUNT(*) as total FROM `order`");
-$stats['orders'] = $result->fetch_assoc()['total'];
-
-// Total revenue
-$result = $conn->query("SELECT SUM(line_total) as total FROM `order`");
-$stats['revenue'] = $result->fetch_assoc()['total'] ?? 0;
-
-// Recent orders
-$recent_orders = $conn->query("
-    SELECT o.order_id, o.line_total, o.qty, o.created_at, 
-           p.product_name, b.brand_name, u.user_name
-    FROM `order` o
-    JOIN product_band pb ON o.product_brand_id = pb.product_id
-    JOIN product p ON pb.product_id = p.product_id
-    JOIN brand b ON pb.brand_id = b.brand_id
-    JOIN recepties r ON o.recepties_id = r.recepties_id
-    JOIN user u ON r.user_id = u.user_id
-    ORDER BY o.created_at DESC
-    LIMIT 5
-");
-
-// Top selling products
-$top_products = $conn->query("
-    SELECT p.product_name, b.brand_name, SUM(o.qty) as total_sold, SUM(o.line_total) as total_revenue
-    FROM `order` o
-    JOIN product_band pb ON o.product_brand_id = pb.product_id
-    JOIN product p ON pb.product_id = p.product_id
-    JOIN brand b ON pb.brand_id = b.brand_id
-    GROUP BY p.product_id, b.brand_id
-    ORDER BY total_sold DESC
-    LIMIT 5
-");
-
-// Include the header file which contains the complete HTML structure
-include '../admin/layouts/header.php';
+include './layout/header.php';
 ?>
-
-<div class="dashboard-wrapper">
-    <!-- Page content -->
-
-    <!-- Welcome Section -->
-    <div class="welcome-section">
-        <div class="welcome-content">
-            <h1 class="welcome-title">Welcome back, Admin! 👋</h1>
-            <p class="welcome-subtitle">Here's what's happening with your store today</p>
-        </div>
-        <div class="welcome-actions">
-            <a href="products.php" class="btn btn-primary btn-modern">
-                <i class="bi bi-plus-circle me-2"></i>Add Product
-            </a>
-            <a href="../" class="btn btn-outline-light btn-modern">
-                <i class="bi bi-eye me-2"></i>View Store
-            </a>
-        </div>
+<div class="container-fluid py-2">
+  <div class="row">
+    <div class="ms-3">
+      <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+      <p class="mb-4">
+        Check the sales, value and bounce rate by country.
+      </p>
     </div>
-
-    <!-- Alert Messages -->
-    <?php if (!empty($_SESSION['MSGS']) && is_array($_SESSION['MSGS'])): ?>
-        <div class="alert alert-success alert-modern alert-dismissible fade show" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <ul class="list-unstyled mb-0">
-                <?php foreach ($_SESSION['MSGS'] as $msg): ?>
-                    <li><?= htmlspecialchars($msg) ?></li>
-                <?php endforeach; ?>
-            </ul>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Today's Money</p>
+              <h4 class="mb-0">$53k</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">weekend</i>
+            </div>
+          </div>
         </div>
-        <?php unset($_SESSION['MSGS']); ?>
-    <?php endif; ?>
-
-    <?php if (!empty($_SESSION['ERRMSG_ARR']) && is_array($_SESSION['ERRMSG_ARR'])): ?>
-        <div class="alert alert-danger alert-modern alert-dismissible fade show" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <strong>Oh no!</strong> Please fix the following errors and try again.
-            <ul class="list-unstyled mb-0 mt-2">
-                <?php foreach ($_SESSION['ERRMSG_ARR'] as $msg): ?>
-                    <li><?= htmlspecialchars($msg) ?></li>
-                <?php endforeach; ?>
-            </ul>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+55% </span>than last week</p>
         </div>
-        <?php unset($_SESSION['ERRMSG_ARR']); ?>
-    <?php endif; ?>
-
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-icon">
-                <i class="bi bi-box"></i>
-            </div>
-            <div class="stat-content">
-                <h3 class="stat-number"><?= number_format($stats['products']) ?></h3>
-                <p class="stat-label">Total Products</p>
-            </div>
-            <div class="stat-trend">
-                <span class="trend-up">+12%</span>
-            </div>
-        </div>
-
-        <div class="stat-card stat-card-success">
-            <div class="stat-icon">
-                <i class="bi bi-currency-dollar"></i>
-            </div>
-            <div class="stat-content">
-                <h3 class="stat-number">$<?= number_format($stats['revenue'], 2) ?></h3>
-                <p class="stat-label">Total Revenue</p>
-            </div>
-            <div class="stat-trend">
-                <span class="trend-up">+8%</span>
-            </div>
-        </div>
-
-        <div class="stat-card stat-card-info">
-            <div class="stat-icon">
-                <i class="bi bi-cart"></i>
-            </div>
-            <div class="stat-content">
-                <h3 class="stat-number"><?= number_format($stats['orders']) ?></h3>
-                <p class="stat-label">Total Orders</p>
-            </div>
-            <div class="stat-trend">
-                <span class="trend-up">+15%</span>
-            </div>
-        </div>
-
-        <div class="stat-card stat-card-warning">
-            <div class="stat-icon">
-                <i class="bi bi-award"></i>
-            </div>
-            <div class="stat-content">
-                <h3 class="stat-number"><?= number_format($stats['brands']) ?></h3>
-                <p class="stat-label">Total Brands</p>
-            </div>
-            <div class="stat-trend">
-                <span class="trend-up">+5%</span>
-            </div>
-        </div>
+      </div>
     </div>
-
-    <!-- Charts and Tables Row -->
-    <div class="dashboard-grid">
-        <!-- Recent Orders -->
-        <div class="dashboard-card orders-card">
-            <div class="card-header-modern">
-                <div class="card-title">
-                    <i class="bi bi-clock-history me-2"></i>
-                    <span>Recent Orders</span>
-                </div>
-                <a href="orders.php" class="btn btn-sm btn-outline-primary">View All</a>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Today's Users</p>
+              <h4 class="mb-0">2300</h4>
             </div>
-            <div class="card-body-modern">
-                <?php if ($recent_orders && $recent_orders->num_rows > 0): ?>
-                    <div class="orders-list">
-                        <?php while ($order = $recent_orders->fetch_assoc()): ?>
-                            <div class="order-item">
-                                <div class="order-info">
-                                    <div class="order-id">#<?= $order['order_id'] ?></div>
-                                    <div class="order-customer"><?= htmlspecialchars($order['user_name']) ?></div>
-                                </div>
-                                <div class="order-product">
-                                    <strong><?= htmlspecialchars($order['product_name']) ?></strong>
-                                    <small><?= htmlspecialchars($order['brand_name']) ?></small>
-                                </div>
-                                <div class="order-details">
-                                    <span class="order-qty"><?= $order['qty'] ?>x</span>
-                                    <span class="order-total">$<?= number_format($order['line_total'], 2) ?></span>
-                                </div>
-                                <div class="order-date">
-                                    <?= date('M d', strtotime($order['created_at'])) ?>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <i class="bi bi-cart-x"></i>
-                        <p>No orders yet</p>
-                    </div>
-                <?php endif; ?>
+            <div class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">person</i>
             </div>
+          </div>
         </div>
-
-        <!-- Top Products -->
-        <div class="dashboard-card products-card">
-            <div class="card-header-modern">
-                <div class="card-title">
-                    <i class="bi bi-trophy me-2"></i>
-                    <span>Top Products</span>
-                </div>
-            </div>
-            <div class="card-body-modern">
-                <?php if ($top_products && $top_products->num_rows > 0): ?>
-                    <div class="products-list">
-                        <?php while ($product = $top_products->fetch_assoc()): ?>
-                            <div class="product-item">
-                                <div class="product-info">
-                                    <h6><?= htmlspecialchars($product['product_name']) ?></h6>
-                                    <small><?= htmlspecialchars($product['brand_name']) ?></small>
-                                </div>
-                                <div class="product-stats">
-                                    <div class="product-sales">
-                                        <span class="sales-count"><?= $product['total_sold'] ?></span>
-                                        <small>sold</small>
-                                    </div>
-                                    <div class="product-revenue">
-                                        $<?= number_format($product['total_revenue'], 2) ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <i class="bi bi-box"></i>
-                        <p>No sales data yet</p>
-                    </div>
-                <?php endif; ?>
-            </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+3% </span>than last month</p>
         </div>
+      </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <div class="dashboard-card">
-            <div class="card-header-modern">
-                <div class="card-title">
-                    <i class="bi bi-lightning me-2"></i>
-                    <span>Quick Actions</span>
-                </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Ads Views</p>
+              <h4 class="mb-0">3,462</h4>
             </div>
-            <div class="card-body-modern">
-                <div class="actions-grid">
-                    <a href="products.php" class="action-card action-primary">
-                        <div class="action-icon">
-                            <i class="bi bi-plus-circle"></i>
-                        </div>
-                        <span>Add Product</span>
-                    </a>
-                    <a href="category.php" class="action-card action-success">
-                        <div class="action-icon">
-                            <i class="bi bi-tags"></i>
-                        </div>
-                        <span>Categories</span>
-                    </a>
-                    <a href="brand_list.php" class="action-card action-info">
-                        <div class="action-icon">
-                            <i class="bi bi-award"></i>
-                        </div>
-                        <span>Brands</span>
-                    </a>
-                    <a href="orders.php" class="action-card action-warning">
-                        <div class="action-icon">
-                            <i class="bi bi-cart-check"></i>
-                        </div>
-                        <span>Orders</span>
-                    </a>
-                </div>
+            <div class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">leaderboard</i>
             </div>
+          </div>
         </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-danger font-weight-bolder">-2% </span>than yesterday</p>
+        </div>
+      </div>
     </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Sales</p>
+              <h4 class="mb-0">$103,430</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">weekend</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+5% </span>than yesterday</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mt-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0 ">Website Views</h6>
+          <p class="text-sm ">Last Campaign Performance</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-bars" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+          <hr class="dark horizontal">
+          <div class="d-flex ">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm"> campaign sent 2 days ago </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-4 mb-4">
+      <div class="card ">
+        <div class="card-body">
+          <h6 class="mb-0 "> Daily Sales </h6>
+          <p class="text-sm "> (<span class="font-weight-bolder">+15%</span>) increase in today sales. </p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-line" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+          <hr class="dark horizontal">
+          <div class="d-flex ">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm"> updated 4 min ago </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mt-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0 ">Completed Tasks</h6>
+          <p class="text-sm ">Last Campaign Performance</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-line-tasks" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+          <hr class="dark horizontal">
+          <div class="d-flex ">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm">just updated</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-lg-8 col-md-6 mb-md-0 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Projects</h6>
+              <p class="text-sm mb-0">
+                <i class="fa fa-check text-info" aria-hidden="true"></i>
+                <span class="font-weight-bold ms-1">30 done</span> this month
+              </p>
+            </div>
+            <div class="col-lg-6 col-5 my-auto text-end">
+              <div class="dropdown float-lg-end pe-4">
+                <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fa fa-ellipsis-v text-secondary"></i>
+                </a>
+                <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownTable">
+                  <li><a class="dropdown-item border-radius-md" href="javascript:;">Action</a></li>
+                  <li><a class="dropdown-item border-radius-md" href="javascript:;">Another action</a></li>
+                  <li><a class="dropdown-item border-radius-md" href="javascript:;">Something else here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Companies</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Members</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Budget</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Completion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-xd.svg" class="avatar avatar-sm me-3" alt="xd">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Material XD Version</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Ryan Tompson">
+                        <img src="../assets/img/team-1.jpg" alt="team1">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Romina Hadid">
+                        <img src="../assets/img/team-2.jpg" alt="team2">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Alexander Smith">
+                        <img src="../assets/img/team-3.jpg" alt="team3">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Jessica Doe">
+                        <img src="../assets/img/team-4.jpg" alt="team4">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> $14,000 </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">60%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-info w-60" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-atlassian.svg" class="avatar avatar-sm me-3" alt="atlassian">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Add Progress Track</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Romina Hadid">
+                        <img src="../assets/img/team-2.jpg" alt="team5">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Jessica Doe">
+                        <img src="../assets/img/team-4.jpg" alt="team6">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> $3,000 </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">10%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-info w-10" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-slack.svg" class="avatar avatar-sm me-3" alt="team7">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Fix Platform Errors</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Romina Hadid">
+                        <img src="../assets/img/team-3.jpg" alt="team8">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Jessica Doe">
+                        <img src="../assets/img/team-1.jpg" alt="team9">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> Not set </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">100%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-success w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm me-3" alt="spotify">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Launch our Mobile App</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Ryan Tompson">
+                        <img src="../assets/img/team-4.jpg" alt="user1">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Romina Hadid">
+                        <img src="../assets/img/team-3.jpg" alt="user2">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Alexander Smith">
+                        <img src="../assets/img/team-4.jpg" alt="user3">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Jessica Doe">
+                        <img src="../assets/img/team-1.jpg" alt="user4">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> $20,500 </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">100%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-success w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-jira.svg" class="avatar avatar-sm me-3" alt="jira">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Add the New Pricing Page</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Ryan Tompson">
+                        <img src="../assets/img/team-4.jpg" alt="user5">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> $500 </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">25%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-info w-25" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="25"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div>
+                        <img src="../assets/img/small-logos/logo-invision.svg" class="avatar avatar-sm me-3" alt="invision">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">Redesign New Online Shop</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-group mt-2">
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Ryan Tompson">
+                        <img src="../assets/img/team-1.jpg" alt="user6">
+                      </a>
+                      <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Jessica Doe">
+                        <img src="../assets/img/team-4.jpg" alt="user7">
+                      </a>
+                    </div>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> $2,000 </span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">40%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-info w-40" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="40"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6>Orders overview</h6>
+          <p class="text-sm">
+            <i class="fa fa-arrow-up text-success" aria-hidden="true"></i>
+            <span class="font-weight-bold">24%</span> this month
+          </p>
+        </div>
+        <div class="card-body p-3">
+          <div class="timeline timeline-one-side">
+            <div class="timeline-block mb-3">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-success text-gradient">notifications</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">$2400, Design changes</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">22 DEC 7:20 PM</p>
+              </div>
+            </div>
+            <div class="timeline-block mb-3">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-danger text-gradient">code</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">New order #1832412</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">21 DEC 11 PM</p>
+              </div>
+            </div>
+            <div class="timeline-block mb-3">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-info text-gradient">shopping_cart</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">Server payments for April</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">21 DEC 9:34 PM</p>
+              </div>
+            </div>
+            <div class="timeline-block mb-3">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-warning text-gradient">credit_card</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">New card added for order #4395133</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">20 DEC 2:20 AM</p>
+              </div>
+            </div>
+            <div class="timeline-block mb-3">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-primary text-gradient">key</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">Unlock packages for development</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">18 DEC 4:54 AM</p>
+              </div>
+            </div>
+            <div class="timeline-block">
+              <span class="timeline-step">
+                <i class="material-symbols-rounded text-dark text-gradient">payments</i>
+              </span>
+              <div class="timeline-content">
+                <h6 class="text-dark text-sm font-weight-bold mb-0">New order #9583120</h6>
+                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">17 DEC</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer py-4  ">
+    <div class="container-fluid">
+      <div class="row align-items-center justify-content-lg-between">
+        <div class="col-lg-6 mb-lg-0 mb-4">
+          <div class="copyright text-center text-sm text-muted text-lg-start">
+            © <script>
+              document.write(new Date().getFullYear())
+            </script>,
+            made with <i class="fa fa-heart"></i> by
+            <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">Creative Tim</a>
+            for a better web.
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <ul class="nav nav-footer justify-content-center justify-content-lg-end">
+            <li class="nav-item">
+              <a href="https://www.creative-tim.com" class="nav-link text-muted" target="_blank">Creative Tim</a>
+            </li>
+            <li class="nav-item">
+              <a href="https://www.creative-tim.com/presentation" class="nav-link text-muted" target="_blank">About Us</a>
+            </li>
+            <li class="nav-item">
+              <a href="https://www.creative-tim.com/blog" class="nav-link text-muted" target="_blank">Blog</a>
+            </li>
+            <li class="nav-item">
+              <a href="https://www.creative-tim.com/license" class="nav-link pe-0 text-muted" target="_blank">License</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+</main>
+<div class="fixed-plugin">
+  <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+    <i class="material-symbols-rounded py-2">settings</i>
+  </a>
+  <div class="card shadow-lg">
+    <div class="card-header pb-0 pt-3">
+      <div class="float-start">
+        <h5 class="mt-3 mb-0">Material UI Configurator</h5>
+        <p>See our dashboard options.</p>
+      </div>
+      <div class="float-end mt-4">
+        <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
+          <i class="material-symbols-rounded">clear</i>
+        </button>
+      </div>
+      <!-- End Toggle Button -->
+    </div>
+    <hr class="horizontal dark my-1">
+    <div class="card-body pt-sm-3 pt-0">
+      <!-- Sidebar Backgrounds -->
+      <div>
+        <h6 class="mb-0">Sidebar Colors</h6>
+      </div>
+      <a href="javascript:void(0)" class="switch-trigger background-color">
+        <div class="badge-colors my-2 text-start">
+          <span class="badge filter bg-gradient-primary" data-color="primary" onclick="sidebarColor(this)"></span>
+          <span class="badge filter bg-gradient-dark active" data-color="dark" onclick="sidebarColor(this)"></span>
+          <span class="badge filter bg-gradient-info" data-color="info" onclick="sidebarColor(this)"></span>
+          <span class="badge filter bg-gradient-success" data-color="success" onclick="sidebarColor(this)"></span>
+          <span class="badge filter bg-gradient-warning" data-color="warning" onclick="sidebarColor(this)"></span>
+          <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
+        </div>
+      </a>
+      <!-- Sidenav Type -->
+      <div class="mt-3">
+        <h6 class="mb-0">Sidenav Type</h6>
+        <p class="text-sm">Choose between different sidenav types.</p>
+      </div>
+      <div class="d-flex">
+        <button class="btn bg-gradient-dark px-3 mb-2" data-class="bg-gradient-dark" onclick="sidebarType(this)">Dark</button>
+        <button class="btn bg-gradient-dark px-3 mb-2 ms-2" data-class="bg-transparent" onclick="sidebarType(this)">Transparent</button>
+        <button class="btn bg-gradient-dark px-3 mb-2  active ms-2" data-class="bg-white" onclick="sidebarType(this)">White</button>
+      </div>
+      <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>
+      <!-- Navbar Fixed -->
+      <div class="mt-3 d-flex">
+        <h6 class="mb-0">Navbar Fixed</h6>
+        <div class="form-check form-switch ps-0 ms-auto my-auto">
+          <input class="form-check-input mt-1 ms-auto" type="checkbox" id="navbarFixed" onclick="navbarFixed(this)">
+        </div>
+      </div>
+      <hr class="horizontal dark my-3">
+      <div class="mt-2 d-flex">
+        <h6 class="mb-0">Light / Dark</h6>
+        <div class="form-check form-switch ps-0 ms-auto my-auto">
+          <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
+        </div>
+      </div>
+      <hr class="horizontal dark my-sm-4">
+      <a class="btn bg-gradient-info w-100" href="https://www.creative-tim.com/product/material-dashboard-pro">Free Download</a>
+      <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/overview/material-dashboard">View documentation</a>
+      <div class="w-100 text-center">
+        <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/material-dashboard on GitHub">Star</a>
+        <h6 class="mt-3">Thank you for sharing!</h6>
+        <a href="https://twitter.com/intent/tweet?text=Check%20Material%20UI%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fsoft-ui-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
+          <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
+        </a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/material-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
+          <i class="fab fa-facebook-square me-1" aria-hidden="true"></i> Share
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<!--   Core JS Files   -->
+<script src="../assets/js/core/popper.min.js"></script>
+<script src="../assets/js/core/bootstrap.min.js"></script>
+<script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+<script src="../assets/js/plugins/chartjs.min.js"></script>
+<script>
+  var ctx = document.getElementById("chart-bars").getContext("2d");
 
-</div>
-</div>
-</div>
-</div>
-<!-- footer -->
-<?php include '../admin/layouts/footer.php'; ?>
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["M", "T", "W", "T", "F", "S", "S"],
+      datasets: [{
+        label: "Views",
+        tension: 0.4,
+        borderWidth: 0,
+        borderRadius: 4,
+        borderSkipped: false,
+        backgroundColor: "#43A047",
+        data: [50, 45, 22, 28, 50, 60, 76],
+        barThickness: 'flex'
+      }, ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+      scales: {
+        y: {
+          grid: {
+            drawBorder: false,
+            display: true,
+            drawOnChartArea: true,
+            drawTicks: false,
+            borderDash: [5, 5],
+            color: '#e5e5e5'
+          },
+          ticks: {
+            suggestedMin: 0,
+            suggestedMax: 500,
+            beginAtZero: true,
+            padding: 10,
+            font: {
+              size: 14,
+              lineHeight: 2
+            },
+            color: "#737373"
+          },
+        },
+        x: {
+          grid: {
+            drawBorder: false,
+            display: false,
+            drawOnChartArea: false,
+            drawTicks: false,
+            borderDash: [5, 5]
+          },
+          ticks: {
+            display: true,
+            color: '#737373',
+            padding: 10,
+            font: {
+              size: 14,
+              lineHeight: 2
+            },
+          }
+        },
+      },
+    },
+  });
 
+
+  var ctx2 = document.getElementById("chart-line").getContext("2d");
+
+  new Chart(ctx2, {
+    type: "line",
+    data: {
+      labels: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+      datasets: [{
+        label: "Sales",
+        tension: 0,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: "#43A047",
+        pointBorderColor: "transparent",
+        borderColor: "#43A047",
+        backgroundColor: "transparent",
+        fill: true,
+        data: [120, 230, 130, 440, 250, 360, 270, 180, 90, 300, 310, 220],
+        maxBarThickness: 6
+
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            title: function(context) {
+              const fullMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+              return fullMonths[context[0].dataIndex];
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+      scales: {
+        y: {
+          grid: {
+            drawBorder: false,
+            display: true,
+            drawOnChartArea: true,
+            drawTicks: false,
+            borderDash: [4, 4],
+            color: '#e5e5e5'
+          },
+          ticks: {
+            display: true,
+            color: '#737373',
+            padding: 10,
+            font: {
+              size: 12,
+              lineHeight: 2
+            },
+          }
+        },
+        x: {
+          grid: {
+            drawBorder: false,
+            display: false,
+            drawOnChartArea: false,
+            drawTicks: false,
+            borderDash: [5, 5]
+          },
+          ticks: {
+            display: true,
+            color: '#737373',
+            padding: 10,
+            font: {
+              size: 12,
+              lineHeight: 2
+            },
+          }
+        },
+      },
+    },
+  });
+
+  var ctx3 = document.getElementById("chart-line-tasks").getContext("2d");
+
+  new Chart(ctx3, {
+    type: "line",
+    data: {
+      labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      datasets: [{
+        label: "Tasks",
+        tension: 0,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: "#43A047",
+        pointBorderColor: "transparent",
+        borderColor: "#43A047",
+        backgroundColor: "transparent",
+        fill: true,
+        data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
+        maxBarThickness: 6
+
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+      scales: {
+        y: {
+          grid: {
+            drawBorder: false,
+            display: true,
+            drawOnChartArea: true,
+            drawTicks: false,
+            borderDash: [4, 4],
+            color: '#e5e5e5'
+          },
+          ticks: {
+            display: true,
+            padding: 10,
+            color: '#737373',
+            font: {
+              size: 14,
+              lineHeight: 2
+            },
+          }
+        },
+        x: {
+          grid: {
+            drawBorder: false,
+            display: false,
+            drawOnChartArea: false,
+            drawTicks: false,
+            borderDash: [4, 4]
+          },
+          ticks: {
+            display: true,
+            color: '#737373',
+            padding: 10,
+            font: {
+              size: 14,
+              lineHeight: 2
+            },
+          }
+        },
+      },
+    },
+  });
+</script>
+<script>
+  var win = navigator.platform.indexOf('Win') > -1;
+  if (win && document.querySelector('#sidenav-scrollbar')) {
+    var options = {
+      damping: '0.5'
+    }
+    Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+  }
+</script>
+<!-- Github buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
+<script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
 </body>
 
 </html>

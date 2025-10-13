@@ -147,7 +147,7 @@ include './layout/user_header.php';
                                     onclick="addToCart(<?= $product['product_id'] ?>, <?= $product['brand_id'] ?>, '<?= htmlspecialchars($product['product_name']) ?>', <?= $product['price'] ?>, '<?= htmlspecialchars($product['img'] ?? '') ?>', '<?= htmlspecialchars($product['brand_name']) ?>', <?= $product['Qty'] ?>)">
                                     <i class="material-symbols-rounded me-1" style="font-size:1rem;">shopping_cart</i>
                                 </button>
-                                <button class="btn btn-outline-primary flex-fill" style="border-radius:8px;padding:.55rem;"
+                                <button class="btn btn-outline-primary flex-fill"
                                     onclick="viewProduct(<?= $product['product_id'] ?>, <?= $product['brand_id'] ?>)">
                                     <i class="material-symbols-rounded me-1" style="font-size:1rem;">visibility</i>
                                 </button>
@@ -235,6 +235,59 @@ include './layout/user_header.php';
         </div>
     </div>
 </div>
+
+<!-- Product Detail Modal (READ-ONLY) -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-product">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-semibold" id="productDetailModalLabel">Product Detail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body pt-0">
+                <div id="pdLoader" class="text-center py-4" style="display:none;">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2">Loading...</div>
+                </div>
+
+                <div id="pdContent" style="display:none;">
+                    <div class="row g-4 align-items-start">
+                        <!-- Left: Gallery -->
+                        <div class="col-md-6">
+                            <div id="pdGallery" class="position-relative rounded-3 d-flex align-items-center justify-content-center" style="background:#f6f7f9; min-height:360px; overflow:hidden;">
+                                <!-- main image injected here -->
+                            </div>
+                            <div id="pdThumbs" class="d-flex gap-2 mt-2 flex-wrap">
+                                <!-- thumbnails injected here -->
+                            </div>
+                        </div>
+                        <!-- Right: Detail (read-only) -->
+                        <div class="col-md-6">
+                            <h4 class="mb-1" id="pdName"></h4>
+                            <p class="text-secondary mb-2" id="pdBrand"></p>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-gradient-info" id="pdGender"></span>
+                                <span class="badge" id="pdStock"></span>
+                            </div>
+                            <div class="h5 text-success mb-3" id="pdPrice"></div>
+                            <p class="text-muted" id="pdDesc"></p>
+
+                            <div class="mt-4 d-flex gap-2">
+                                <a href="#" id="pdOpenFull" class="btn btn-outline-secondary">Open full page</a>
+                                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pdError" class="alert alert-danger" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Core JS -->
 <script src="../assets/js/core/popper.min.js"></script>
@@ -445,7 +498,88 @@ include './layout/user_header.php';
     }
 
     function viewProduct(productId, brandId) {
-        window.location.href = `product_detail.php?id=${productId}&brand=${brandId}`;
+        const modalEl = document.getElementById('productDetailModal');
+        const modal = new bootstrap.Modal(modalEl);
+
+        // Reset UI
+        document.getElementById('pdLoader').style.display = 'block';
+        document.getElementById('pdContent').style.display = 'none';
+        document.getElementById('pdError').style.display = 'none';
+
+        modal.show();
+
+        fetch(`product_detail_api.php?id=${encodeURIComponent(productId)}&brand=${encodeURIComponent(brandId)}`, {
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('pdLoader').style.display = 'none';
+
+                if (!d.success) {
+                    document.getElementById('pdError').textContent = d.message || 'Unable to load product.';
+                    document.getElementById('pdError').style.display = 'block';
+                    return;
+                }
+
+                const p = d.data;
+
+                // Fill basics
+                document.getElementById('pdName').textContent = p.product_name;
+                document.getElementById('pdBrand').textContent = p.brand_name;
+                document.getElementById('pdGender').textContent = p.gender || '—';
+                const stockEl = document.getElementById('pdStock');
+                const inStock = (p.stock_qty ?? 0) > 0;
+                stockEl.textContent = (p.stock_qty ?? 0) + (inStock ? ' in stock' : ' out of stock');
+                stockEl.className = 'badge ' + (inStock ? 'bg-gradient-success' : 'bg-gradient-secondary');
+                document.getElementById('pdPrice').textContent = '$' + Number(p.price).toFixed(2);
+                document.getElementById('pdDesc').textContent = p.description || '';
+
+                // Build gallery
+                const gallery = document.getElementById('pdGallery');
+                const thumbs = document.getElementById('pdThumbs');
+                gallery.innerHTML = '';
+                thumbs.innerHTML = '';
+
+                const images = (p.images && p.images.length) ? p.images : [];
+                const mainImg = document.createElement('img');
+                mainImg.className = 'img-fluid';
+                mainImg.style.maxHeight = '90%';
+                mainImg.style.objectFit = 'contain';
+
+                if (images.length) {
+                    mainImg.src = '../admin/upload/' + images[0];
+                } else {
+                    mainImg.style.display = 'none';
+                }
+                gallery.appendChild(mainImg);
+
+                images.forEach((im) => {
+                    const t = document.createElement('img');
+                    t.src = '../admin/upload/' + im;
+                    t.className = 'rounded';
+                    t.style.width = '62px';
+                    t.style.height = '62px';
+                    t.style.objectFit = 'cover';
+                    t.style.cursor = 'pointer';
+                    t.onclick = () => {
+                        mainImg.src = '../admin/upload/' + im;
+                        mainImg.style.display = 'block';
+                    };
+                    thumbs.appendChild(t);
+                });
+
+                // Open full page
+                const openFull = document.getElementById('pdOpenFull');
+                openFull.href = `product_detail.php?id=${p.product_id}&brand=${p.brand_id}`;
+
+                // Show content
+                document.getElementById('pdContent').style.display = 'block';
+            })
+            .catch(() => {
+                document.getElementById('pdLoader').style.display = 'none';
+                document.getElementById('pdError').textContent = 'Error loading product.';
+                document.getElementById('pdError').style.display = 'block';
+            });
     }
 </script>
 </body>

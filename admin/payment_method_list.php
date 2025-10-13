@@ -143,7 +143,7 @@ require './layout/header.php';
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'product_detail_list.php?delete_id=' + id
+                    window.location.href = 'payment_method_list.php?delete_id=' + id
                 }
             });
         });

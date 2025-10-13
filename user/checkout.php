@@ -13,67 +13,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'process_checkout') {
         $payment_method_id = (int)($_POST['payment_method_id'] ?? 0);
-        $shipping_address = $_POST['shipping_address'] ?? '';
-        $notes = $_POST['notes'] ?? '';
+        $shipping_address  = $_POST['shipping_address'] ?? '';
+        $notes             = $_POST['notes'] ?? '';
 
         if ($payment_method_id <= 0) {
             $message = 'Please select a payment method';
             $message_type = 'danger';
         } else {
-            // Get cart items
+            // Pull cart with product_brand_id and current stock
             $cart_query = "
-                SELECT c.cart_id, c.quantity, c.product_id, c.brand_id,
-                       p.product_name, p.description, p.gender,
-                       b.brand_name, pb.price
-                FROM cart c
-                JOIN product_brand pb ON c.product_id = pb.product_id AND c.brand_id = pb.brand_id
-                JOIN product p ON pb.product_id = p.product_id
-                JOIN brand b ON pb.brand_id = b.brand_id
-                WHERE c.user_id = ?
-            ";
+            SELECT c.cart_id, c.quantity, c.product_id, c.brand_id,
+                   p.product_name, p.description, p.gender,
+                   b.brand_name,
+                   pb.product_brand_id, pb.price, pb.Qty AS stock_qty
+            FROM cart c
+            JOIN product_brand pb ON c.product_id = pb.product_id AND c.brand_id = pb.brand_id
+            JOIN product p ON pb.product_id = p.product_id
+            JOIN brand b   ON pb.brand_id = b.brand_id
+            WHERE c.user_id = ?
+            FOR UPDATE
+        ";
             $stmt = $conn->prepare($cart_query);
             $stmt->bind_param("i", $currentUser['user_id']);
             $stmt->execute();
             $cart_items = $stmt->get_result();
 
-
             if ($cart_items->num_rows > 0) {
-                // Calculate total
-                $total = 0;
+                // Compute total & stage items
+                $total = 0.0;
                 $items = [];
-                while ($item = $cart_items->fetch_assoc()) {
-                    $item_total = $item['price'] * $item['quantity'];
-                    $total += $item_total;
-                    $items[] = $item;
+                while ($it = $cart_items->fetch_assoc()) {
+                    $line_total = (float)$it['price'] * (int)$it['quantity'];
+                    $total += $line_total;
+                    $items[] = $it;
                 }
 
-                // Start transaction
+                // Start transaction (already locked rows via FOR UPDATE)
                 $conn->begin_transaction();
-
                 try {
-                    // Create receipt
+                    // Create receipt (you can also save shipping_address/notes in a table)
                     $receipt_query = "INSERT INTO recepties (user_id, date, total) VALUES (?, CURDATE(), ?)";
                     $stmt = $conn->prepare($receipt_query);
                     $stmt->bind_param("id", $currentUser['user_id'], $total);
                     $stmt->execute();
                     $receipt_id = $conn->insert_id;
 
-                    // Create orders for each item
-                    foreach ($items as $item) {
-                        $line_total = $item['price'] * $item['quantity'];
-                        // Get the product_brand_id for this cart item
-                        $pb_query = "SELECT product_brand_id FROM product_brand WHERE product_id = ? AND brand_id = ?";
-                        $pb_stmt = $conn->prepare($pb_query);
-                        $pb_stmt->bind_param("ii", $item['product_id'], $item['brand_id']);
-                        $pb_stmt->execute();
-                        $pb_result = $pb_stmt->get_result();
-                        $pb_row = $pb_result->fetch_assoc();
-                        $product_brand_id = $pb_row['product_brand_id'];
+                    // Prepare statements we reuse
+                    $dec_stock_sql = "UPDATE product_brand SET Qty = Qty - ? WHERE product_brand_id = ? AND Qty >= ?";
+                    $dec_stock_stmt = $conn->prepare($dec_stock_sql);
 
-                        $order_query = "INSERT INTO `order` (recepties_id, product_brand_id, line_total, qty, payment_method_id) VALUES (?, ?, ?, ?, ?)";
-                        $stmt = $conn->prepare($order_query);
-                        $stmt->bind_param("iidii", $receipt_id, $product_brand_id, $line_total, $item['quantity'], $payment_method_id);
-                        $stmt->execute();
+                    $order_sql = "INSERT INTO `order`
+                              (recepties_id, product_brand_id, line_total, qty, payment_method_id)
+                              VALUES (?, ?, ?, ?, ?)";
+                    $order_stmt = $conn->prepare($order_sql);
+
+                    foreach ($items as $item) {
+                        $qtyNeeded = (int)$item['quantity'];
+                        $pbid = (int)$item['product_brand_id'];
+                        $unitPrice = (float)$item['price'];
+                        $lineTotal = $unitPrice * $qtyNeeded;
+
+                        // Atomically decrement stock, preventing negative Qty
+                        $dec_stock_stmt->bind_param("iii", $qtyNeeded, $pbid, $qtyNeeded);
+                        $dec_stock_stmt->execute();
+
+                        if ($dec_stock_stmt->affected_rows !== 1) {
+                            // Not enough stock — rollback and inform user
+                            throw new Exception("Insufficient stock for {$item['product_name']} ({$item['brand_name']}).");
+                        }
+
+                        // Insert order line
+                        $order_stmt->bind_param("iidii", $receipt_id, $pbid, $lineTotal, $qtyNeeded, $payment_method_id);
+                        $order_stmt->execute();
                     }
 
                     // Clear cart
@@ -82,13 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bind_param("i", $currentUser['user_id']);
                     $stmt->execute();
 
-                    // Commit transaction
+                    // Commit
                     $conn->commit();
 
+                    // Success
                     $message = 'Order placed successfully! Order ID: #' . $receipt_id;
                     $message_type = 'success';
-
-                    // Redirect to order confirmation
                     header("Location: order_confirmation.php?id=" . $receipt_id);
                     exit();
                 } catch (Exception $e) {

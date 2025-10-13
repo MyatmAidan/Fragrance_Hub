@@ -122,7 +122,7 @@ require './layout/header.php';
     }
 
     table thead {
-        background: #e0c185;
+        background: #83cbdfff;
         color: #222;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -364,7 +364,7 @@ require './layout/header.php';
                                                     data-val="<?= $row['recepties_id'] ?>"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#exampleModalCenter">
-                                                    <i class="fa-regular fa-file-lines"></i>
+                                                    <i class="material-symbols-rounded opacity-5">receipt</i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -516,12 +516,12 @@ require './layout/header.php';
 .info {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
 .info .box {
-    flex: 1 1 100%;
+    flex: 1 1 20%;
     background: #f1f1f1;
     padding: 6px 10px;
     border-radius: 6px;
@@ -546,7 +546,7 @@ table {
 }
 
 table thead {
-    background: #e0c185;
+    background: #83cbdfff;
     color: #000;
     font-weight: bold;
 }
@@ -765,8 +765,8 @@ table tbody tr:nth-child(even) {
                         <p><span>Discount :</span> <span>$0.00</span></p>
                         <p><span>Subtotal :</span> <span>$${response_recepties.total}</span></p>
                         <p><span>Tax (5%):</span> <span>$${(response_recepties.total * 0.05).toFixed(2)}</span></p>
-                        <p><span>Grand Total :</span> <span>$${(response_recepties.total * 1.10).toFixed(2)}</span></p>
                         <p><span>Paid By :</span> <span> Cash</span></p>
+                        <p><span>Grand Total :</span> <span>$${(response_recepties.total * 1.10).toFixed(2)}</span></p>
                     `);
                 },
                 error: function(xhr, status, error) {

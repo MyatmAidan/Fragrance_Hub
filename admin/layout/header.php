@@ -17,7 +17,7 @@ $currentUser = $auth->getCurrentUser();
     <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
     <link rel="icon" type="image/png" href="../assets/img/favicon.png">
     <title>
-        Material Dashboard 3 by Creative Tim
+        Admin Dashboard
     </title>
     <!--     Fonts and icons     -->
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
@@ -38,7 +38,7 @@ $currentUser = $auth->getCurrentUser();
             <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
             <a class="navbar-brand px-4 py-3 m-0" href=" https://demos.creative-tim.com/material-dashboard/pages/dashboard " target="_blank">
                 <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img" width="26" height="26" alt="main_logo">
-                <span class="ms-1 text-sm text-dark">Creative Tim</span>
+                <span class="ms-1 text-sm text-dark">Fragrance Hub</span>
             </a>
         </div>
         <hr class="horizontal dark mt-0 mb-2">
@@ -51,29 +51,11 @@ $currentUser = $auth->getCurrentUser();
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="../pages/tables.html">
-                        <i class="material-symbols-rounded opacity-5">table_view</i>
-                        <span class="nav-link-text ms-1">Tables</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link text-dark" href="user_list.php">
                         <i class="material-symbols-rounded opacity-5">people</i>
                         <span class="nav-link-text ms-1">Users</span>
                     </a>
                 </li>
-                <!-- <li class="nav-item">
-                    <a class="nav-link text-dark" href="../pages/virtual-reality.html">
-                        <i class="material-symbols-rounded opacity-5">view_in_ar</i>
-                        <span class="nav-link-text ms-1">Virtual Reality</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="../pages/rtl.html">
-                        <i class="material-symbols-rounded opacity-5">format_textdirection_r_to_l</i>
-                        <span class="nav-link-text ms-1">RTL</span>
-                    </a>
-                </li> -->
                 <li class="nav-item">
                     <a class="nav-link <?= $current_page == 'brand_list.php' ? 'active bg-gradient-dark text-white' : 'text-dark' ?>" href="brand_list.php">
                         <i class="material-symbols-rounded opacity-5">branding_watermark</i>
@@ -84,6 +66,12 @@ $currentUser = $auth->getCurrentUser();
                     <a class="nav-link <?= $current_page == 'product_list.php' ? 'active bg-gradient-dark text-white' : 'text-dark' ?>" href="product_list.php">
                         <i class="material-symbols-rounded opacity-5">shopping_bag</i>
                         <span class="nav-link-text ms-1">Product</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'payment_method_list.php' ? 'active bg-gradient-dark text-white' : 'text-dark' ?>" href="payment_method_list.php">
+                        <i class="material-symbols-rounded opacity-5">credit_card</i>
+                        <span class="nav-link-text ms-1">Payment Method</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -101,25 +89,13 @@ $currentUser = $auth->getCurrentUser();
                         <span class="nav-link-text ms-1">Profile</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="../pages/sign-in.html">
-                        <i class="material-symbols-rounded opacity-5">login</i>
-                        <span class="nav-link-text ms-1">Sign In</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="../pages/sign-up.html">
-                        <i class="material-symbols-rounded opacity-5">assignment</i>
-                        <span class="nav-link-text ms-1">Sign Up</span>
-                    </a>
-                </li>
             </ul>
         </div>
         <div class="sidenav-footer position-absolute w-100 bottom-0 ">
-            <div class="mx-3">
+            <!-- <div class="mx-3">
                 <a class="btn btn-outline-dark mt-4 w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/overview/material-dashboard?ref=sidebarfree" type="button">Documentation</a>
                 <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/material-dashboard-pro?ref=sidebarfree" type="button">Upgrade to pro</a>
-            </div>
+            </div> -->
         </div>
     </aside>
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
@@ -144,7 +120,7 @@ $currentUser = $auth->getCurrentUser();
                             <a class="btn btn-outline-primary btn-sm mb-0 me-3" target="_blank" href="https://www.creative-tim.com/builder?ref=navbar-material-dashboard">Online Builder</a>
                         </li> -->
                         <li class="mt-1">
-                            <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/material-dashboard on GitHub">Star</a>
+                            <!-- <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/material-dashboard on GitHub">Star</a> -->
                         </li>
                         <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
                             <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">

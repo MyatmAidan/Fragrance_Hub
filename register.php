@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="./assets/img/favicon.png">
   <title>
-    Material Dashboard 3 by Creative Tim
+    Fragrance Hub - Register
   </title>
   <!--     Fonts and icons     -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
@@ -45,8 +45,8 @@
         <nav
           class="navbar navbar-expand-lg blur border-radius-lg top-0 z-index-3 shadow position-absolute mt-4 py-2 start-0 end-0 mx-4">
           <div class="container-fluid ps-2 pe-0">
-            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="../pages/dashboard.html">
-              Material Dashboard 3
+            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="#">
+              Fragrance Hub
             </a>
             <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse"
               data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false"
@@ -59,7 +59,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navigation">
               <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                   <a class="nav-link d-flex align-items-center me-2 active" aria-current="page"
                     href="../pages/dashboard.html">
                     <i class="fa fa-chart-pie opacity-6 text-dark me-1"></i>
@@ -83,16 +83,16 @@
                     <i class="fas fa-key opacity-6 text-dark me-1"></i>
                     Sign In
                   </a>
-                </li>
+                </li> -->
               </ul>
               <ul class="navbar-nav d-lg-flex d-none">
                 <li class="nav-item d-flex align-items-center">
                   <a class="btn btn-outline-primary btn-sm mb-0 me-2" target="_blank"
-                    href="https://www.creative-tim.com/builder?ref=navbar-material-dashboard">Online Builder</a>
+                    href="#">Register</a>
                 </li>
                 <li class="nav-item">
-                  <a href="https://www.creative-tim.com/product/material-dashboard"
-                    class="btn btn-sm mb-0 me-1 bg-gradient-dark">Free download</a>
+                  <a href="Login.php"
+                    class="btn btn-sm mb-0 me-1 bg-gradient-dark">Login</a>
                 </li>
               </ul>
             </div>
@@ -111,13 +111,13 @@
               class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 start-0 text-center justify-content-center flex-column">
               <div
                 class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center"
-                style="background-image: url('./assets/img/illustrations/illustration-signup.jpg'); background-size: cover;">
+                style="background-image: url('./assets/img/register.jpg'); background-size: cover;">
               </div>
             </div>
             <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column ms-auto me-auto ms-lg-auto me-lg-5">
               <div class="card card-plain">
                 <div class="card-header">
-                  <h4 class="font-weight-bolder">Sign Up</h4>
+                  <!-- <h4 class="font-weight-bolder">Sign Up</h4> -->
                   <p class="mb-0">Enter your email and password to register</p>
                 </div>
                 <div class="card-body">

@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="./assets/img/favicon.png">
   <title>
-    Material Dashboard 3 by Creative Tim
+    Fragrance Hub - Login
   </title>
   <!--     Fonts and icons     -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
@@ -46,7 +46,7 @@
           class="navbar navbar-expand-lg blur border-radius-xl top-0 z-index-3 shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
           <div class="container-fluid ps-2 pe-0">
             <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="../pages/dashboard.html">
-              Material Dashboard 3
+              Fragrance Hub
             </a>
             <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse"
               data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false"
@@ -59,7 +59,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navigation">
               <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                   <a class="nav-link d-flex align-items-center me-2 active" aria-current="page"
                     href="../pages/dashboard.html">
                     <i class="fa fa-chart-pie opacity-6 text-dark me-1"></i>
@@ -71,28 +71,28 @@
                     <i class="fa fa-user opacity-6 text-dark me-1"></i>
                     Profile
                   </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link me-2" href="../pages/sign-up.html">
+                </li> -->
+                <!-- <li class="nav-item">
+                  <a class="nav-link me-2" href="register.php">
                     <i class="fas fa-user-circle opacity-6 text-dark me-1"></i>
-                    Sign Up
+                    Register
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link me-2" href="../pages/sign-in.html">
+                  <a class="nav-link me-2" href="#">
                     <i class="fas fa-key opacity-6 text-dark me-1"></i>
-                    Sign In
+                    Login
                   </a>
-                </li>
+                </li> -->
               </ul>
               <ul class="navbar-nav d-lg-flex d-none">
                 <li class="nav-item d-flex align-items-center">
                   <a class="btn btn-outline-primary btn-sm mb-0 me-2" target="_blank"
-                    href="https://www.creative-tim.com/builder?ref=navbar-material-dashboard">Online Builder</a>
+                    href="#">Login</a>
                 </li>
                 <li class="nav-item">
-                  <a href="https://www.creative-tim.com/product/material-dashboard"
-                    class="btn btn-sm mb-0 me-1 bg-gradient-dark">Free download</a>
+                  <a href="Register.php" target="_blank"
+                    class="btn btn-sm mb-0 me-1 bg-gradient-dark">Register</a>
                 </li>
               </ul>
             </div>
@@ -104,7 +104,7 @@
   </div>
   <main class="main-content  mt-0">
     <div class="page-header align-items-start min-vh-100"
-      style="background-image: url('https://images.unsplash.com/photo-1497294815431-9365093b7331?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80');">
+      style="background-image: url('./assets/img/login.jpg');">
       <span class="mask bg-gradient-dark opacity-6"></span>
       <div class="container my-auto">
         <div class="row">
@@ -169,17 +169,17 @@
                 <script>
                   document.write(new Date().getFullYear())
                 </script>,
-                made with <i class="fa fa-heart" aria-hidden="true"></i> by
-                <a href="https://www.creative-tim.com" class="font-weight-bold text-white" target="_blank">Creative
-                  Tim</a>
-                for a better web.
+                fragrance hub <i class="fa fa-heart" aria-hidden="true"></i>
+                <a href="https://www.creative-tim.com" class="font-weight-bold text-white" target="_blank">
+                  all rights reserved
+                </a>
               </div>
             </div>
             <div class="col-12 col-md-6">
               <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                   <a href="https://www.creative-tim.com" class="nav-link text-white" target="_blank">Creative Tim</a>
-                </li>
+                </li> -->
                 <li class="nav-item">
                   <a href="https://www.creative-tim.com/presentation" class="nav-link text-white" target="_blank">About
                     Us</a>
